@@ -12,10 +12,11 @@ class BottomNavExample extends StatefulWidget {
 class _BottomNavExampleState extends State<BottomNavExample> {
   int _currentIndex = 0;
 
-  final List<Widget> _pages = [
-    SearchPage(),
-    Center(child: Text("Search ", style: TextStyle(fontSize: 24))),
-    Center(child: Text("Settings ", style: TextStyle(fontSize: 24))),
+  // Pages in your navigation bar
+  final List<Widget> _pages = const [
+    SearchPage(), // ✅ Home page (restaurants list)
+    Center(child: Text("Bookings Page", style: TextStyle(fontSize: 24))),
+    Center(child: Text("Profile Page", style: TextStyle(fontSize: 24))),
   ];
 
   @override
@@ -23,6 +24,9 @@ class _BottomNavExampleState extends State<BottomNavExample> {
     return Scaffold(
       body: _pages[_currentIndex], // Show selected page
       bottomNavigationBar: BottomNavigationBar(
+        selectedItemColor: Colors.orange,
+        selectedLabelStyle: TextStyle(fontWeight: FontWeight.bold,color: Colors.orange[800]),
+        backgroundColor: Colors.white,
         currentIndex: _currentIndex,
         onTap: (index) {
           setState(() {
@@ -36,7 +40,7 @@ class _BottomNavExampleState extends State<BottomNavExample> {
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.more_time_outlined),
-            label: "Booking",
+            label: "Bookings",
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person_2_outlined),

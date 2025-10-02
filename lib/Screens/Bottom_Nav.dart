@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:tablengo/Screens/Home_page.dart';
+import 'package:tablengo/Screens/Profile_page.dart';
 
 class BottomNavExample extends StatefulWidget {
   const BottomNavExample({super.key});
@@ -14,9 +15,9 @@ class _BottomNavExampleState extends State<BottomNavExample> {
 
   // Pages in your navigation bar
   final List<Widget> _pages = const [
-    SearchPage(), // ✅ Home page (restaurants list)
+    SearchPage(), 
     Center(child: Text("Bookings Page", style: TextStyle(fontSize: 24))),
-    Center(child: Text("Profile Page", style: TextStyle(fontSize: 24))),
+    ProfileScreen(), 
   ];
 
   @override
@@ -24,8 +25,8 @@ class _BottomNavExampleState extends State<BottomNavExample> {
     return Scaffold(
       body: _pages[_currentIndex], // Show selected page
       bottomNavigationBar: BottomNavigationBar(
-        selectedItemColor: Colors.orange,
-        selectedLabelStyle: TextStyle(fontWeight: FontWeight.bold,color: Colors.orange[800]),
+        selectedItemColor: Colors.deepOrange,
+        selectedLabelStyle: TextStyle(fontWeight: FontWeight.bold,color: Colors.deepOrange[800]),
         backgroundColor: Colors.white,
         currentIndex: _currentIndex,
         onTap: (index) {

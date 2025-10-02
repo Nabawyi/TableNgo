@@ -1,4 +1,6 @@
 // ignore: file_names
+// ignore_for_file: unused_import
+
 import 'package:flutter/material.dart';
 import 'package:tablengo/WedgetsC/filter_search_bar.dart';
 import 'package:tablengo/WedgetsC/search_bar.dart';
@@ -12,6 +14,8 @@ class SearchPage extends StatefulWidget {
 }
 
 class _SearchPageState extends State<SearchPage> {
+  List<bool> favorites = List.generate(resturants.length, (index) => false);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -38,7 +42,6 @@ class _SearchPageState extends State<SearchPage> {
           },
         ),
       ),
-
       drawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,
@@ -59,7 +62,7 @@ class _SearchPageState extends State<SearchPage> {
           ],
         ),
       ),
-      backgroundColor: Colors.white,
+      // ... (rest of your Scaffold code)
       body: Column(
         children: [
           searchBar(),
@@ -67,10 +70,9 @@ class _SearchPageState extends State<SearchPage> {
           Expanded(
             child: ListView.builder(
               padding: const EdgeInsets.all(8),
-              itemCount:
-                  resturants.length, // +3 for search, filter, and spacing
+              itemCount: resturants.length,
               itemBuilder: (context, index) {
-                return cardCustom(resturants[index]);
+                return cardCustom(resturants[index], index);
               },
             ),
           ),
@@ -78,112 +80,134 @@ class _SearchPageState extends State<SearchPage> {
       ),
     );
   }
-}
 
-Widget cardCustom(ResturantData restaurant) {
-  return InkWell(
-    child: Card(
-      color: Colors.white,
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 2),
-      child: Row(
-        children: [
-          // Image on the left side
-          ClipRRect(
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(12),
-              bottomLeft: Radius.circular(12),
-            ),
-            child: Image.asset(
-              restaurant.image,
-              width: 120,
-              height: 120,
-              fit: BoxFit.cover,
-            ),
-          ),
-          const SizedBox(width: 12),
-          // Card Content
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Title Row
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  Widget cardCustom(ResturantData restaurant, int index) {
+    return InkWell(
+      child: Card(
+        color: Colors.white,
+        elevation: 4,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 2),
+        child: Container(
+          height: 110,
+          child: Row(
+            children: [
+              ClipRRect(
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(12),
+                  bottomLeft: Radius.circular(12),
+                ),
+                child: Image.asset(
+                  restaurant.image,
+                  width: 120,
+                  height: 110,
+                  fit: BoxFit.cover,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        restaurant.name,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.normal,
-                          color: Colors.black87,
-                        ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            restaurant.name,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.normal,
+                              color: Colors.black87,
+                            ),
+                          ),
+                          Row(
+                            children: [
+                              const Icon(
+                                Icons.star,
+                                color: Colors.amber,
+                                size: 18,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                restaurant.rating.toString(),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.normal,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
+                      const SizedBox(height: 4),
                       Row(
                         children: [
-                          const Icon(Icons.star, color: Colors.amber, size: 18),
+                          const Icon(
+                            Icons.location_on_outlined,
+                            color: Colors.grey,
+                            size: 18,
+                          ),
                           const SizedBox(width: 4),
                           Text(
-                            restaurant.rating.toString(),
+                            restaurant.location,
                             style: const TextStyle(
-                              fontWeight: FontWeight.normal,
                               fontSize: 12,
+                              color: Colors.grey,
                             ),
                           ),
                         ],
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  // Location Row
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.location_on_outlined,
-                        color: Colors.grey,
-                        size: 18,
-                      ),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: Text(
-                          restaurant.location,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey,
-                          ),
-                          overflow: TextOverflow.ellipsis,
+                      const SizedBox(height: 2),
+                      Container(
+                        height: 30,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Icon(
+                              Icons.access_time,
+                              color: Colors.grey,
+                              size: 17,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              restaurant.time,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey,
+                              ),
+                            ),
+                            IconButton(
+                              onPressed: () {
+                                setState(() {
+                                  favorites[index] = !favorites[index];
+                                });
+                              },
+                              icon: Icon(
+                                favorites[index]
+                                    ? Icons.favorite
+                                    : Icons.favorite_border,
+                                color: favorites[index]
+                                    ? Colors.red
+                                    : Colors.grey,
+                                size: 20,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 4),
-                  // Time Row
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.access_time,
-                        color: Colors.grey,
-                        size: 18,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        restaurant.time,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+                ),
               ),
-            ),
+            ],
           ),
-        ],
+        ),
       ),
-    ),
-  );
+    );
+  }
 }

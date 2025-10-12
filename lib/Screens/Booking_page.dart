@@ -1,4 +1,4 @@
-// ignore_for_file: file_names
+// ignore_for_file: file_names, deprecated_member_use
 
 import 'package:flutter/material.dart';
 import 'package:tablengo/data/resturant_data.dart';
@@ -13,177 +13,143 @@ class BookingPage extends StatefulWidget {
 }
 
 class _BookingPageState extends State<BookingPage> {
+  int? selectedSeatIndex; // keep track of which seat is selected
+
   @override
   Widget build(BuildContext context) {
-    final resturant = widget.restaurant; 
+    final resturant = widget.restaurant;
 
     return Scaffold(
-      body: Container(
-        // padding: const EdgeInsets.all(20),
-        width: double.infinity,
-        height: double.infinity,
-        color: Colors.white,
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              Image.asset(
-                resturant.image,
-                fit: BoxFit.cover,
-                width: double.infinity,
-                height: 200,
+      backgroundColor: Colors.grey.shade100,
+      body: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+        child: Column(
+          children: [
+            // Restaurant image
+            Image.asset(
+              resturant.image,
+              fit: BoxFit.cover,
+              width: double.infinity,
+              height: 200,
+            ),
+            const SizedBox(height: 20),
+
+            // Restaurant name
+            Text(
+              resturant.name,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+
+            const SizedBox(height: 20),
+            const Text(
+              "Available Seats",
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            ),
+            const SizedBox(height: 15),
+
+            // Seat Cards
+            Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: List.generate(resturant.seatData.length, (index) {
+                final seat = resturant.seatData[index];
+                return SeatCard(
+                  seats: seat['seats'] ?? '',
+                  time: seat['time'] ?? '',
+                  deposit: seat['Deposit'] ?? '',
+                  isSelected: selectedSeatIndex == index,
+                  onSelect: () {
+                    setState(() {
+                      // Toggle selection
+                      selectedSeatIndex = selectedSeatIndex == index
+                          ? null
+                          : index;
+                    });
+                  },
+                );
+              }),
+            ),
+
+            const SizedBox(height: 20),
+
+            // Booking details and button
+            if (selectedSeatIndex != null) ...[
+              bookingDetailsCard(
+                resturant.seatData[selectedSeatIndex!]['seats'] ?? '',
+                resturant.seatData[selectedSeatIndex!]['time'] ?? '',
+                resturant.seatData[selectedSeatIndex!]['Deposit'] ?? '',
+                resturant.refundAmount,
               ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 20),
-                    Text(
-                      resturant.name,
-                      style: const TextStyle(
+              const SizedBox(height: 15),
+              SizedBox(
+                width: double.infinity,
+                height: 55,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: ElevatedButton(
+                    onPressed: () {
+                      // Add your booking logic here
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.deepOrange,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: const Text(
+                      "Book Now",
+                      style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
+                        color: Colors.white,
                       ),
                     ),
-                    const SizedBox(height: 10),
-                    Row(
-                      children: [
-                        const Icon(Icons.star, color: Colors.amber, size: 18),
-                        const SizedBox(width: 4),
-                        Text(
-                          resturant.rating.toString(),
-                          style: const TextStyle(
-                            fontWeight: FontWeight.normal,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.location_on_outlined,
-                          color: Colors.grey,
-                          size: 18,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          resturant.location,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 10),
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.access_time,
-                          color: Colors.grey,
-                          size: 17,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          resturant.time,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 30),
-                    //AVAILABLE SEATS
-                    Center(
-                      child: const Text(
-                        "Available Seats",
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    Center(
-                      child: Wrap(
-                        spacing: 12,
-                        runSpacing: 12,
-                        children: resturant.seatData.map<Widget>((seat) {
-                          return SingleChildScrollView(
-                            child: SeatCard(
-                              seats: seat['seats'] ?? '',
-                              time: seat['time'] ?? '',
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    bookingDetailsCard(),
-                    const SizedBox(height: 20),
-                    Center(
-                      child: Container(
-                        width: double.infinity,
-                        height: 55,
-                        child: ElevatedButton(
-                          onPressed: () {},
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.deepOrange,
-
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                          child: const Text(
-                            "Book Now",
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                  ],
+                  ),
                 ),
               ),
             ],
-          ),
+
+            const SizedBox(height: 30),
+          ],
         ),
       ),
     );
   }
 }
 
-class SeatCard extends StatefulWidget {
+class SeatCard extends StatelessWidget {
   final String seats;
   final String time;
+  final String deposit;
+  final bool isSelected;
+  final VoidCallback onSelect;
 
-  const SeatCard({super.key, required this.seats, required this.time});
+  const SeatCard({
+    super.key,
+    required this.seats,
+    required this.time,
+    required this.deposit,
+    required this.isSelected,
+    required this.onSelect,
+  });
 
-  @override
-  State<SeatCard> createState() => _SeatCardState();
-}
-
-class _SeatCardState extends State<SeatCard> {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: () {
-        print("Tapped on ${widget.seats} at ${widget.time}");
-      },
-      child: Container(
+      onTap: onSelect,
+      borderRadius: BorderRadius.circular(12),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
         width: 110,
         height: 100,
         decoration: BoxDecoration(
-          color: Colors.white,
-          border: Border.all(color: Colors.grey.shade300, width: 1),
+          color: isSelected
+              ? Colors.deepOrange.withOpacity(0.15)
+              : Colors.white,
+          border: Border.all(
+            color: isSelected ? Colors.deepOrange : Colors.grey.shade300,
+            width: isSelected ? 2 : 1,
+          ),
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
@@ -197,23 +163,23 @@ class _SeatCardState extends State<SeatCard> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
+            Icon(
               Icons.people_alt_outlined,
-              color: Colors.deepOrange,
+              color: isSelected ? Colors.deepOrange : Colors.grey,
               size: 30,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             Text(
-              widget.seats,
-              style: const TextStyle(
+              seats,
+              style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 12,
-                color: Colors.black87,
+                color: isSelected ? Colors.deepOrange : Colors.black87,
               ),
             ),
             const SizedBox(height: 4),
             Text(
-              widget.time,
+              time,
               style: const TextStyle(fontSize: 10, color: Colors.blueGrey),
             ),
           ],
@@ -223,10 +189,16 @@ class _SeatCardState extends State<SeatCard> {
   }
 }
 
-Widget bookingDetailsCard() {
+Widget bookingDetailsCard(
+  String seats,
+  String time,
+  String deposit,
+  double refundAmount,
+) {
   return Container(
     width: double.infinity,
-    height: 100,
+    margin: const EdgeInsets.symmetric(horizontal: 16),
+    padding: const EdgeInsets.all(12),
     decoration: BoxDecoration(
       color: Colors.white,
       border: Border.all(color: Colors.grey.shade300, width: 1),
@@ -236,6 +208,29 @@ Widget bookingDetailsCard() {
           color: Colors.grey.shade200,
           blurRadius: 4,
           offset: const Offset(0, 2),
+        ),
+      ],
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "Selected: $seats - $time",
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 8),
+        Text("Deposit: $deposit"),
+        Text(
+          "Refund on arrival: EGP $refundAmount",
+          style: const TextStyle(color: Colors.grey, fontSize: 12),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          "Total Payable:  $deposit",
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.deepOrange,
+          ),
         ),
       ],
     ),

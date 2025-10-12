@@ -1,3 +1,5 @@
+// ignore_for_file: file_names
+
 import 'package:flutter/material.dart';
 import 'package:tablengo/Screens/Home_page.dart';
 import 'package:tablengo/Screens/Profile_page.dart';

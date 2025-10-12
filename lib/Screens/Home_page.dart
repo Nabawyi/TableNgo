@@ -1,7 +1,8 @@
-// ignore: file_names
-// ignore_for_file: unused_import
+// ignore_for_file: unused_import, file_names
 
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:tablengo/Screens/booking_page.dart';
 import 'package:tablengo/WedgetsC/filter_search_bar.dart';
 import 'package:tablengo/WedgetsC/search_bar.dart';
 import 'package:tablengo/data/resturant_data.dart';
@@ -20,12 +21,9 @@ class _SearchPageState extends State<SearchPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'TableNgo',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Colors.deepOrange,
-          ),
+          style: GoogleFonts.pacifico(fontSize: 24, color: Colors.deepOrange),
         ),
         centerTitle: true,
         elevation: 0,
@@ -83,12 +81,21 @@ class _SearchPageState extends State<SearchPage> {
 
   Widget cardCustom(ResturantData restaurant, int index) {
     return InkWell(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => BookingPage(restaurant: restaurant),
+          ),
+        );
+      },
+
       child: Card(
         color: Colors.white,
         elevation: 4,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 2),
-        child: Container(
+        child: SizedBox(
           height: 110,
           child: Row(
             children: [
@@ -163,7 +170,7 @@ class _SearchPageState extends State<SearchPage> {
                         ],
                       ),
                       const SizedBox(height: 2),
-                      Container(
+                      SizedBox(
                         height: 30,
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,

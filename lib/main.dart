@@ -1,12 +1,9 @@
 // ignore_for_file: unused_import
 
+import 'package:TableNgo/Screens/splash_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:tablengo/Screens/Home_page.dart';
-import 'package:tablengo/Screens/Welcome_screen.dart';
-import 'package:tablengo/Screens/booking_page.dart';
-import 'package:tablengo/Screens/bottom_Nav.dart';
-import 'package:tablengo/Screens/splash_screen.dart';
+
 
 void main() {
   runApp(const MyApp());

@@ -1,7 +1,7 @@
 // ignore_for_file: file_names, deprecated_member_use
 
+import 'package:TableNgo/data/resturant_data.dart';
 import 'package:flutter/material.dart';
-import 'package:tablengo/data/resturant_data.dart';
 
 class BookingPage extends StatefulWidget {
   final ResturantData restaurant;

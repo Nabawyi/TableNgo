@@ -1,8 +1,9 @@
 // ignore_for_file: file_names
 
+import 'package:TableNgo/Screens/Home_page.dart';
+import 'package:TableNgo/Screens/profile_page.dart';
 import 'package:flutter/material.dart';
-import 'package:tablengo/Screens/Home_page.dart';
-import 'package:tablengo/Screens/Profile_page.dart';
+
 
 class BottomNavExample extends StatefulWidget {
   const BottomNavExample({super.key});

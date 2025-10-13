@@ -1,7 +1,6 @@
 import 'dart:async';
+import 'package:TableNgo/Screens/Home_page.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:tablengo/Screens/Home_page.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -14,8 +13,6 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-
-    // Go to home after 3 seconds
     Timer(const Duration(seconds: 2), () {
       Navigator.pushReplacement(
         context,
@@ -38,14 +35,11 @@ class _SplashScreenState extends State<SplashScreen> {
           ),
         ),
         child: Center(
-          child: Text(
-            "TableNgo",
-            style: GoogleFonts.pacifico(
-              fontSize: 38,
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 1.2,
-            ),
+          child: Image.asset(
+            "assets/images/Logo1.png",
+            width: 200,
+            height: 200,
+            fit: BoxFit.contain,
           ),
         ),
       ),

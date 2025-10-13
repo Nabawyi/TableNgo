@@ -1,11 +1,11 @@
 // ignore_for_file: unused_import, file_names
 
+import 'package:TableNgo/Screens/booking_page.dart';
+import 'package:TableNgo/WedgetsC/search_bar.dart';
+import 'package:TableNgo/data/resturant_data.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:tablengo/Screens/booking_page.dart';
-import 'package:tablengo/WedgetsC/filter_search_bar.dart';
-import 'package:tablengo/WedgetsC/search_bar.dart';
-import 'package:tablengo/data/resturant_data.dart';
+
 
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key});
@@ -21,9 +21,9 @@ class _SearchPageState extends State<SearchPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          'TableNgo',
-          style: GoogleFonts.pacifico(fontSize: 24, color: Colors.deepOrange),
+        title: Image.asset( 
+          'assets/images/Logo_orange.png',
+          height: 50,
         ),
         centerTitle: true,
         elevation: 0,

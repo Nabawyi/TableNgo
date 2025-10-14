@@ -1,43 +1,65 @@
-// ignore_for_file: file_names
-
-import 'package:TableNgo/Screens/Home_page.dart';
-import 'package:TableNgo/Screens/profile_page.dart';
 import 'package:flutter/material.dart';
-
+import 'package:TableNgo/Screens/Home_page.dart';
+import 'package:TableNgo/Screens/booking_history.dart';
+import 'package:TableNgo/Screens/profile_page.dart';
+import 'package:TableNgo/data/resturant_data.dart';
 
 class BottomNavExample extends StatefulWidget {
   const BottomNavExample({super.key});
 
   @override
-  // ignore: library_private_types_in_public_api
-  _BottomNavExampleState createState() => _BottomNavExampleState();
+  State<BottomNavExample> createState() => _BottomNavExampleState();
 }
 
 class _BottomNavExampleState extends State<BottomNavExample> {
   int _currentIndex = 0;
-
-  // Pages in your navigation bar
-  late final List<Widget> _pages;
-
-  @override
-  void initState() {
-    super.initState();
-    _pages = [
-      const SearchPage(),
-      const Center(child: Text("Bookings Histry")), // Placeholder for Bookings
-      const ProfileScreen(),
-    ];
-  }
+  List<ResturantData> bookedRestaurants = [];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _pages[_currentIndex], // Show selected page
+      body: IndexedStack(
+        index: _currentIndex,
+        children: [
+          // Tab 0: Nested Navigator to keep bottom bar visible when pushing BookingPage
+          Navigator(
+            onGenerateRoute: (settings) {
+              return MaterialPageRoute(
+                builder: (context) => SearchPage(
+                  onBooking: (restaurant) {
+                    setState(() {
+                      bookedRestaurants.add(restaurant);
+                    });
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Booking added to history')),
+                    );
+                  },
+                ),
+              );
+            },
+          ),
+          // Tab 1: Booking history uses the shared state list
+          MyBookingHistoy(
+            bookedRestaurants: bookedRestaurants,
+            restaurant: ResturantData(
+              name: '',
+              image: '',
+              seatData: const [],
+              location: '',
+              time: '',
+              rating: 0.0,
+              refundAmount: 80,
+            ),
+            index: 0,
+            selectedSeatIndex: 0,
+          ),
+          // Tab 2: Profile
+          const ProfileScreen(),
+        ],
+      ),
       bottomNavigationBar: BottomNavigationBar(
-        selectedItemColor: Colors.deepOrange,
-        selectedLabelStyle: TextStyle(fontWeight: FontWeight.bold,color: Colors.deepOrange[800]),
-        backgroundColor: Colors.white,
         currentIndex: _currentIndex,
+        selectedItemColor: Colors.deepOrange,
         onTap: (index) {
           setState(() {
             _currentIndex = index;
@@ -53,7 +75,7 @@ class _BottomNavExampleState extends State<BottomNavExample> {
             label: "Bookings",
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.person_2_outlined),
+            icon: Icon(Icons.person_outline),
             label: "Profile",
           ),
         ],

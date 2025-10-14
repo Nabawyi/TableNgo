@@ -6,9 +6,10 @@ import 'package:TableNgo/data/resturant_data.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-
 class SearchPage extends StatefulWidget {
-  const SearchPage({super.key});
+  final Function(ResturantData) onBooking;
+
+  const SearchPage({super.key, required this.onBooking});
 
   @override
   State<SearchPage> createState() => _SearchPageState();
@@ -21,10 +22,7 @@ class _SearchPageState extends State<SearchPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Image.asset( 
-          'assets/images/Logo_orange.png',
-          height: 50,
-        ),
+        title: Image.asset('assets/images/Logo_orange.png', height: 50),
         centerTitle: true,
         elevation: 0,
         backgroundColor: Colors.white,
@@ -85,7 +83,10 @@ class _SearchPageState extends State<SearchPage> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => BookingPage(restaurant: restaurant),
+            builder: (context) => BookingPage(
+              restaurant: restaurant,
+              onBookNow: widget.onBooking,
+            ),
           ),
         );
       },

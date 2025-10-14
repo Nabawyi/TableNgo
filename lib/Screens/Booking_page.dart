@@ -1,5 +1,6 @@
 // ignore_for_file: file_names, deprecated_member_use
 
+import 'package:TableNgo/Screens/booking_history.dart';
 import 'package:TableNgo/data/resturant_data.dart';
 import 'package:flutter/material.dart';
 
@@ -13,7 +14,9 @@ class BookingPage extends StatefulWidget {
 }
 
 class _BookingPageState extends State<BookingPage> {
-  int? selectedSeatIndex; // keep track of which seat is selected
+  static List<ResturantData> bookedRestaurantsGlobal =
+      []; // ✅ made static so it's shared
+  int? selectedSeatIndex;
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +28,6 @@ class _BookingPageState extends State<BookingPage> {
         physics: const BouncingScrollPhysics(),
         child: Column(
           children: [
-            // Restaurant image
             Image.asset(
               resturant.image,
               fit: BoxFit.cover,
@@ -34,7 +36,6 @@ class _BookingPageState extends State<BookingPage> {
             ),
             const SizedBox(height: 20),
 
-            // Restaurant name
             Text(
               resturant.name,
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -47,7 +48,6 @@ class _BookingPageState extends State<BookingPage> {
             ),
             const SizedBox(height: 15),
 
-            // Seat Cards
             Wrap(
               spacing: 12,
               runSpacing: 12,
@@ -60,7 +60,6 @@ class _BookingPageState extends State<BookingPage> {
                   isSelected: selectedSeatIndex == index,
                   onSelect: () {
                     setState(() {
-                      // Toggle selection
                       selectedSeatIndex = selectedSeatIndex == index
                           ? null
                           : index;
@@ -72,7 +71,6 @@ class _BookingPageState extends State<BookingPage> {
 
             const SizedBox(height: 20),
 
-            // Booking details and button
             if (selectedSeatIndex != null) ...[
               bookingDetailsCard(
                 resturant.seatData[selectedSeatIndex!]['seats'] ?? '',
@@ -88,7 +86,25 @@ class _BookingPageState extends State<BookingPage> {
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: ElevatedButton(
                     onPressed: () {
-                      // Add your booking logic here
+                      // ✅ Add the restaurant to global list if not already added
+                      if (!bookedRestaurantsGlobal.contains(
+                        widget.restaurant,
+                      )) {
+                        bookedRestaurantsGlobal.add(widget.restaurant);
+                      }
+
+                      // ✅ Navigate and pass the same list
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => MyBookingHistoy(
+                            bookedRestaurants: bookedRestaurantsGlobal,
+                            restaurant: widget.restaurant,
+                            index: 0,
+                            selectedSeatIndex: selectedSeatIndex!,
+                          ),
+                        ),
+                      );
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.deepOrange,
@@ -108,7 +124,6 @@ class _BookingPageState extends State<BookingPage> {
                 ),
               ),
             ],
-
             const SizedBox(height: 30),
           ],
         ),
@@ -226,7 +241,7 @@ Widget bookingDetailsCard(
         ),
         const SizedBox(height: 4),
         Text(
-          "Total Payable:  $deposit",
+          "Total Payable: $deposit",
           style: const TextStyle(
             fontWeight: FontWeight.bold,
             color: Colors.deepOrange,

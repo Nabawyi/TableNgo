@@ -1,7 +1,9 @@
 // ignore_for_file: file_names
 
 import 'package:TableNgo/Screens/Home_page.dart';
+import 'package:TableNgo/Screens/booking_history.dart';
 import 'package:TableNgo/Screens/profile_page.dart';
+import 'package:TableNgo/data/resturant_data.dart';
 import 'package:flutter/material.dart';
 
 
@@ -17,11 +19,17 @@ class _BottomNavExampleState extends State<BottomNavExample> {
   int _currentIndex = 0;
 
   // Pages in your navigation bar
-  final List<Widget> _pages = const [
-    SearchPage(), 
-    Center(child: Text("Bookings Page", style: TextStyle(fontSize: 24))),
-    ProfileScreen(), 
-  ];
+  late final List<Widget> _pages;
+
+  @override
+  void initState() {
+    super.initState();
+    _pages = [
+      const SearchPage(),
+      const Center(child: Text("Bookings Histry")), // Placeholder for Bookings
+      const ProfileScreen(),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {

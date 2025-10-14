@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:TableNgo/Screens/Home_page.dart';
+import 'package:TableNgo/Screens/bottom_Nav.dart';
 import 'package:flutter/material.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -16,7 +17,7 @@ class _SplashScreenState extends State<SplashScreen> {
     Timer(const Duration(seconds: 2), () {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const SearchPage()),
+        MaterialPageRoute(builder: (context) => const BottomNavExample()),
       );
     });
   }

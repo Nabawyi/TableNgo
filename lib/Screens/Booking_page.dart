@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 
 class BookingPage extends StatefulWidget {
   final ResturantData restaurant;
-  final Function(ResturantData) onBookNow;
+  final Function(ResturantData, int, DateTime) onBookNow;
 
   const BookingPage({
     super.key,
@@ -87,7 +87,13 @@ class _BookingPageState extends State<BookingPage> {
                       )) {
                         bookedRestaurantsGlobal.add(widget.restaurant);
                       }
-                      widget.onBookNow(widget.restaurant);
+                      final int seatIndex = selectedSeatIndex!;
+                      final DateTime bookingDate = DateTime.now();
+                      widget.onBookNow(
+                        widget.restaurant,
+                        seatIndex,
+                        bookingDate,
+                      );
                       Navigator.pop(context);
                     },
                     style: ElevatedButton.styleFrom(

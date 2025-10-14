@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class SearchPage extends StatefulWidget {
-  final Function(ResturantData) onBooking;
+  final Function(ResturantData, int, DateTime) onBooking;
 
   const SearchPage({super.key, required this.onBooking});
 
@@ -85,7 +85,8 @@ class _SearchPageState extends State<SearchPage> {
           MaterialPageRoute(
             builder: (context) => BookingPage(
               restaurant: restaurant,
-              onBookNow: widget.onBooking,
+              onBookNow: (r, seatIndex, date) =>
+                  widget.onBooking(r, seatIndex, date),
             ),
           ),
         );

@@ -7,8 +7,9 @@ import 'package:flutter/material.dart';
 Widget BookingCard(
   ResturantData restaurant,
   int index,
-  dynamic selectedSeatIndex,
-) {
+  dynamic selectedSeatIndex, {
+  DateTime? bookingDate,
+}) {
   return Container(
     padding: const EdgeInsets.all(16.0),
     width: double.infinity,
@@ -114,23 +115,41 @@ Widget BookingCard(
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Row(
+                  Row(
                     children: [
-                      Icon(Icons.calendar_month, color: Colors.grey, size: 16),
-                      SizedBox(width: 4),
+                      const Icon(
+                        Icons.calendar_month,
+                        color: Colors.grey,
+                        size: 14,
+                      ),
+                      const SizedBox(width: 4),
                       Text(
-                        '12 Aug, 2023',
-                        style: TextStyle(fontSize: 12, color: Colors.grey),
+                        bookingDate != null
+                            ? '${bookingDate.day.toString().padLeft(2, '0')} '
+                                  '${_monthName(bookingDate.month)}, ${bookingDate.year}'
+                            : '—',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey,
+                        ),
                       ),
                     ],
                   ),
-                  const Row(
+                  Row(
                     children: [
-                      Icon(Icons.access_time, color: Colors.grey, size: 16),
-                      SizedBox(width: 4),
+                      const Icon(
+                        Icons.access_time,
+                        color: Colors.grey,
+                        size: 14,
+                      ),
+                      const SizedBox(width: 4),
                       Text(
-                        '7:30 PM',
-                        style: TextStyle(fontSize: 12, color: Colors.grey),
+                        restaurant.seatData[selectedSeatIndex]['time']
+                            as String,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey,
+                        ),
                       ),
                     ],
                   ),
@@ -143,11 +162,8 @@ Widget BookingCard(
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        selectedSeatIndex == 0
-                            ? '2 Seats'
-                            : selectedSeatIndex == 1
-                            ? '4 Seats'
-                            : '6 Seats',
+                        restaurant.seatData[selectedSeatIndex]['seats']
+                            as String,
                         style: const TextStyle(
                           fontSize: 12,
                           color: Colors.grey,
@@ -163,17 +179,17 @@ Widget BookingCard(
         const SizedBox(height: 12),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: const [
+          children: [
             Text(
-              'Deposit Paid: \$20',
-              style: TextStyle(
+              restaurant.seatData[selectedSeatIndex]['Deposit'] as String,
+              style: const TextStyle(
                 fontSize: 12,
                 color: Colors.grey,
                 fontWeight: FontWeight.bold,
               ),
             ),
             Text(
-              'Refunded: \$15',
+              'Refund: EGP ${restaurant.refundAmount.toStringAsFixed(0)}',
               style: TextStyle(
                 fontSize: 12,
                 color: Colors.grey,
@@ -185,4 +201,35 @@ Widget BookingCard(
       ],
     ),
   );
+}
+
+String _monthName(int month) {
+  switch (month) {
+    case 1:
+      return 'Jan';
+    case 2:
+      return 'Feb';
+    case 3:
+      return 'Mar';
+    case 4:
+      return 'Apr';
+    case 5:
+      return 'May';
+    case 6:
+      return 'Jun';
+    case 7:
+      return 'Jul';
+    case 8:
+      return 'Aug';
+    case 9:
+      return 'Sep';
+    case 10:
+      return 'Oct';
+    case 11:
+      return 'Nov';
+    case 12:
+      return 'Dec';
+    default:
+      return '';
+  }
 }

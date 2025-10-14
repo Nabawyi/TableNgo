@@ -2,10 +2,11 @@
 
 import 'package:TableNgo/WedgetsC/booking_card.dart';
 import 'package:TableNgo/data/resturant_data.dart';
+import 'package:TableNgo/data/booking_item.dart';
 import 'package:flutter/material.dart';
 
 class MyBookingHistoy extends StatefulWidget {
-  final List<ResturantData> bookedRestaurants;
+  final List<BookingItem> bookedRestaurants;
   final ResturantData restaurant;
   final int index;
   final int selectedSeatIndex;
@@ -23,7 +24,7 @@ class MyBookingHistoy extends StatefulWidget {
 }
 
 class _MyBookingHistoyState extends State<MyBookingHistoy> {
-  late List<ResturantData> bookedRestaurants;
+  late List<BookingItem> bookedRestaurants;
 
   @override
   void initState() {
@@ -67,11 +68,12 @@ class _MyBookingHistoyState extends State<MyBookingHistoy> {
               child: ListView.builder(
                 itemCount: bookedRestaurants.length,
                 itemBuilder: (context, index) {
-                  final restaurant = bookedRestaurants[index];
+                  final item = bookedRestaurants[index];
                   return BookingCard(
-                    restaurant,
+                    item.restaurant,
                     index,
-                    widget.selectedSeatIndex,
+                    item.selectedSeatIndex,
+                    bookingDate: item.bookingDate,
                   );
                 },
               ),

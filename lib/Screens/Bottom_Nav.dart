@@ -3,6 +3,7 @@ import 'package:TableNgo/Screens/Home_page.dart';
 import 'package:TableNgo/Screens/booking_history.dart';
 import 'package:TableNgo/Screens/profile_page.dart';
 import 'package:TableNgo/data/resturant_data.dart';
+import 'package:TableNgo/data/booking_item.dart';
 
 class BottomNavExample extends StatefulWidget {
   const BottomNavExample({super.key});
@@ -13,7 +14,7 @@ class BottomNavExample extends StatefulWidget {
 
 class _BottomNavExampleState extends State<BottomNavExample> {
   int _currentIndex = 0;
-  List<ResturantData> bookedRestaurants = [];
+  List<BookingItem> bookedRestaurants = [];
 
   @override
   Widget build(BuildContext context) {
@@ -26,9 +27,15 @@ class _BottomNavExampleState extends State<BottomNavExample> {
             onGenerateRoute: (settings) {
               return MaterialPageRoute(
                 builder: (context) => SearchPage(
-                  onBooking: (restaurant) {
+                  onBooking: (restaurant, selectedSeatIndex, bookingDate) {
                     setState(() {
-                      bookedRestaurants.add(restaurant);
+                      bookedRestaurants.add(
+                        BookingItem(
+                          restaurant: restaurant,
+                          selectedSeatIndex: selectedSeatIndex,
+                          bookingDate: bookingDate,
+                        ),
+                      );
                     });
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Booking added to history')),

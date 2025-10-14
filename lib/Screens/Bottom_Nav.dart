@@ -1,9 +1,7 @@
 // ignore_for_file: file_names
 
 import 'package:TableNgo/Screens/Home_page.dart';
-import 'package:TableNgo/Screens/booking_history.dart';
 import 'package:TableNgo/Screens/profile_page.dart';
-import 'package:TableNgo/data/resturant_data.dart';
 import 'package:flutter/material.dart';
 
 

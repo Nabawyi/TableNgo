@@ -29,7 +29,7 @@ class _BookingPageState extends State<BookingPage> {
         physics: const BouncingScrollPhysics(),
         child: Column(
           children: [
-            Image.asset(
+            Image.network(
               resturant.image,
               fit: BoxFit.cover,
               width: double.infinity,

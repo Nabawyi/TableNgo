@@ -1,10 +1,9 @@
-// ignore_for_file: unused_import, file_names
-
+import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:TableNgo/data/resturant_data.dart';
 import 'package:TableNgo/Screens/booking_page.dart';
 import 'package:TableNgo/WedgetsC/search_bar.dart';
-import 'package:TableNgo/data/resturant_data.dart';
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class SearchPage extends StatefulWidget {
   final Function(ResturantData, int, DateTime) onBooking;
@@ -16,23 +15,70 @@ class SearchPage extends StatefulWidget {
 }
 
 class _SearchPageState extends State<SearchPage> {
-  List<bool> favorites = List.generate(resturants.length, (index) => false);
+  List<ResturantData> restaurants = [];
+  bool isLoading = true;
+  String? errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    loadRestaurants();
+  }
+
+  Future<void> loadRestaurants() async {
+    try {
+      print('📡 Fetching data from Supabase...');
+      final response = await Supabase.instance.client
+          .from('restaurants')
+          .select(
+            'id, name, image, location, time, rating, refund_amount, seat_data',
+          );
+
+      print('✅ Response: $response');
+
+      final list = (response as List)
+          .map((json) => ResturantData.fromJson(json))
+          .toList();
+
+      setState(() {
+        restaurants = list;
+        isLoading = false;
+      });
+    } catch (error) {
+      print('❌ Error fetching data: $error');
+      setState(() {
+        errorMessage = error.toString();
+        isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (isLoading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    if (errorMessage != null) {
+      return Scaffold(body: Center(child: Text('Error: $errorMessage')));
+    }
+
+    if (restaurants.isEmpty) {
+      return const Scaffold(body: Center(child: Text('No restaurants found.')));
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: Image.asset('assets/images/Logo_orange.png', height: 50),
         centerTitle: true,
-        elevation: 0,
         backgroundColor: Colors.white,
+        elevation: 0,
         leading: Builder(
-          // 👈 Important to get Scaffold context
           builder: (context) {
             return IconButton(
               icon: const Icon(Icons.menu, color: Colors.deepOrange),
               onPressed: () {
-                Scaffold.of(context).openDrawer(); // 👈 Open Drawer
+                Scaffold.of(context).openDrawer();
               },
             );
           },
@@ -58,17 +104,15 @@ class _SearchPageState extends State<SearchPage> {
           ],
         ),
       ),
-      // ... (rest of your Scaffold code)
       body: Column(
         children: [
           searchBar(),
-          //filterSearchBar(),
           Expanded(
             child: ListView.builder(
               padding: const EdgeInsets.all(8),
-              itemCount: resturants.length,
+              itemCount: restaurants.length,
               itemBuilder: (context, index) {
-                return cardCustom(resturants[index], index);
+                return cardCustom(restaurants[index], index);
               },
             ),
           ),
@@ -91,7 +135,6 @@ class _SearchPageState extends State<SearchPage> {
           ),
         );
       },
-
       child: Card(
         color: Colors.white,
         elevation: 4,
@@ -106,12 +149,19 @@ class _SearchPageState extends State<SearchPage> {
                   topLeft: Radius.circular(12),
                   bottomLeft: Radius.circular(12),
                 ),
-                child: Image.asset(
-                  restaurant.image,
-                  width: 120,
-                  height: 110,
-                  fit: BoxFit.cover,
-                ),
+                child: restaurant.image.isNotEmpty
+                    ? Image.network(
+                        restaurant.image,
+                        width: 120,
+                        height: 110,
+                        fit: BoxFit.cover,
+                      )
+                    : Container(
+                        width: 120,
+                        height: 110,
+                        color: Colors.grey[200],
+                        child: const Icon(Icons.image_not_supported),
+                      ),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -130,7 +180,7 @@ class _SearchPageState extends State<SearchPage> {
                             restaurant.name,
                             style: const TextStyle(
                               fontSize: 12,
-                              fontWeight: FontWeight.normal,
+                              fontWeight: FontWeight.bold,
                               color: Colors.black87,
                             ),
                           ),
@@ -175,7 +225,7 @@ class _SearchPageState extends State<SearchPage> {
                       SizedBox(
                         height: 30,
                         child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          // mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             const Icon(
                               Icons.access_time,
@@ -188,22 +238,6 @@ class _SearchPageState extends State<SearchPage> {
                               style: const TextStyle(
                                 fontSize: 12,
                                 color: Colors.grey,
-                              ),
-                            ),
-                            IconButton(
-                              onPressed: () {
-                                setState(() {
-                                  favorites[index] = !favorites[index];
-                                });
-                              },
-                              icon: Icon(
-                                favorites[index]
-                                    ? Icons.favorite
-                                    : Icons.favorite_border,
-                                color: favorites[index]
-                                    ? Colors.red
-                                    : Colors.grey,
-                                size: 20,
                               ),
                             ),
                           ],

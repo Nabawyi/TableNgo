@@ -2,14 +2,21 @@
 
 import 'package:TableNgo/Screens/booking_history.dart';
 import 'package:TableNgo/Screens/splash_screen.dart';
+import 'package:TableNgo/Screens/testsuba.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/services.dart';
 
-void main() {
+void main() async {
+  
+  String anonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhhaHRwcHZpY2hmdXR6c3Z5ZHllIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA0NDAwMjAsImV4cCI6MjA3NjAxNjAyMH0.4h3zolshVbylzwWw46CgrCi1yzZqQVZA6nRLRvzlQ0E";
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-
+  await Supabase.initialize(
+    url: 'https://hahtppvichfutzsvydye.supabase.co',
+    anonKey: anonKey
+  );
   runApp(const MyApp());
 }
 

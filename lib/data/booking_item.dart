@@ -11,3 +11,4 @@ class BookingItem {
     required this.bookingDate,
   });
 }
+

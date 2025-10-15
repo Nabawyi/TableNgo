@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:TableNgo/Screens/bottom_Nav.dart';
+import 'package:TableNgo/Screens/bottom_nav.dart';
 import 'package:flutter/material.dart';
 
 class SplashScreen extends StatefulWidget {

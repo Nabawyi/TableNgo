@@ -1,6 +1,7 @@
+// ignore_for_file: file_names, avoid_print
+
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:TableNgo/data/resturant_data.dart';
 import 'package:TableNgo/Screens/booking_page.dart';
 import 'package:TableNgo/WedgetsC/search_bar.dart';

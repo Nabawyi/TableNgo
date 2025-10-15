@@ -1,6 +1,6 @@
 // ignore_for_file: file_names, deprecated_member_use
 
-import 'package:TableNgo/Screens/bottom_Nav.dart';
+import 'package:TableNgo/Screens/bottom_nav.dart';
 import 'package:flutter/material.dart';
 
 class WelcomeScreen extends StatefulWidget {

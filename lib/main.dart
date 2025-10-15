@@ -2,7 +2,8 @@
 
 import 'package:TableNgo/Screens/booking_history.dart';
 import 'package:TableNgo/Screens/splash_screen.dart';
-import 'package:TableNgo/Screens/testsuba.dart';
+import 'package:TableNgo/Subapase/test1.dart';
+import 'package:TableNgo/Subapase/testsuba.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';

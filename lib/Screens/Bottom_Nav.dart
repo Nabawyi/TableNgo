@@ -1,3 +1,5 @@
+// ignore_for_file: file_names
+
 import 'package:flutter/material.dart';
 import 'package:TableNgo/Screens/Home_page.dart';
 import 'package:TableNgo/Screens/booking_history.dart';

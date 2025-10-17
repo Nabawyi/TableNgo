@@ -18,19 +18,17 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
     Timer(const Duration(seconds: 2),()async {
-      await Future.delayed(const Duration(seconds: 2)); // 👈 splash delay
+      await Future.delayed(const Duration(seconds: 2)); 
 
     final session = supabase.auth.currentSession;
 
     if (session != null) {
-      // ✅ Already logged in
       print("✅ User logged in: ${session.user.email}");
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => const BottomNavExample()),
       );
     } else {
-      // 🚪 Not logged in
       print("🚪 No session found. Redirecting to WelcomeScreen...");
       Navigator.pushReplacement(
         context,

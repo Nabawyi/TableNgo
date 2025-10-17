@@ -29,7 +29,7 @@ class SeatCard extends StatelessWidget {
         height: 100,
         decoration: BoxDecoration(
           color: isSelected
-              ? Colors.deepOrange.withOpacity(0.15)
+              ? Colors.deepOrange.withOpacity(0.1)
               : Colors.white,
           border: Border.all(
             color: isSelected ? Colors.deepOrange : Colors.grey.shade300,
@@ -65,7 +65,11 @@ class SeatCard extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               time,
-              style: const TextStyle(fontSize: 10, color: Colors.blueGrey),
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 10,
+                color: isSelected ? Colors.deepOrange : Colors.black87,
+              ),
             ),
           ],
         ),

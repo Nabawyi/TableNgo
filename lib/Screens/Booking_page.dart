@@ -24,7 +24,13 @@ class _BookingPageState extends State<BookingPage> {
   Widget build(BuildContext context) {
     final resturant = widget.restaurant;
     return Scaffold(
-      backgroundColor: Colors.grey.shade100,
+      appBar: AppBar(
+        title: Image.asset('assets/images/Logo_orange.png', height: 50),
+        centerTitle: true,
+        elevation: 0,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.deepOrange,
+      ),
       body: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
         child: Column(
@@ -73,6 +79,7 @@ class _BookingPageState extends State<BookingPage> {
                 resturant.seatData[selectedSeatIndex!]['time'] ?? '',
                 resturant.seatData[selectedSeatIndex!]['Deposit'] ?? '',
                 resturant.refundAmount,
+                
               ),
               const SizedBox(height: 15),
               SizedBox(

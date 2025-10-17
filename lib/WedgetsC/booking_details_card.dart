@@ -8,6 +8,13 @@ Widget bookingDetailsCard(
   String deposit,
   double refundAmount,
 ) {
+  final depositValue =
+      double.tryParse(deposit.toString().replaceAll(RegExp(r'[^0-9.]'), '')) ??
+      0;
+
+  final refundValue = (depositValue * (refundAmount / 100)).toInt();
+  final totalPayable = depositValue - refundValue;
+
   return Container(
     width: double.infinity,
     margin: const EdgeInsets.symmetric(horizontal: 16),
@@ -34,12 +41,12 @@ Widget bookingDetailsCard(
         const SizedBox(height: 8),
         Text("Deposit: $deposit"),
         Text(
-          "Refund on arrival: EGP $refundAmount",
+          'Refund on arrival: EGP $refundValue',
           style: const TextStyle(color: Colors.grey, fontSize: 12),
         ),
         const SizedBox(height: 4),
         Text(
-          "Total Payable: $deposit",
+          "Total Payable: ${totalPayable.toStringAsFixed(0)}",
           style: const TextStyle(
             fontWeight: FontWeight.bold,
             color: Colors.deepOrange,

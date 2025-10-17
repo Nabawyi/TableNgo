@@ -1,15 +1,19 @@
-// ignore_for_file: file_names, avoid_print
+// ignore_for_file: file_names, avoid_print, deprecated_member_use
 
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:TableNgo/data/resturant_data.dart';
-import 'package:TableNgo/Screens/booking_page.dart';
 import 'package:TableNgo/WedgetsC/search_bar.dart';
 
 class SearchPage extends StatefulWidget {
   final Function(ResturantData, int, DateTime) onBooking;
+  final Function(ResturantData) onNavigateToBooking;
 
-  const SearchPage({super.key, required this.onBooking});
+  const SearchPage({
+    super.key,
+    required this.onBooking,
+    required this.onNavigateToBooking,
+  });
 
   @override
   State<SearchPage> createState() => _SearchPageState();
@@ -72,7 +76,6 @@ class _SearchPageState extends State<SearchPage> {
       appBar: AppBar(
         title: Image.asset('assets/images/Logo_orange.png', height: 50),
         centerTitle: true,
-        backgroundColor: Colors.white,
         elevation: 0,
         leading: Builder(
           builder: (context) {
@@ -125,16 +128,7 @@ class _SearchPageState extends State<SearchPage> {
   Widget cardCustom(ResturantData restaurant, int index) {
     return InkWell(
       onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => BookingPage(
-              restaurant: restaurant,
-              onBookNow: (r, seatIndex, date) =>
-                  widget.onBooking(r, seatIndex, date),
-            ),
-          ),
-        );
+        widget.onNavigateToBooking(restaurant);
       },
       child: Card(
         color: Colors.white,

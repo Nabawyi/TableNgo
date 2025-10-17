@@ -10,6 +10,14 @@ Widget BookingCard(
   dynamic selectedSeatIndex, {
   DateTime? bookingDate,
 }) {
+  double depositAmount = double.parse(
+    restaurant.seatData[selectedSeatIndex]['Deposit'].toString().replaceAll(
+      RegExp(r'[^0-9.]'),
+      '',
+    ),
+  );
+  double refundValue = depositAmount * (restaurant.refundAmount / 100);
+
   return Container(
     padding: const EdgeInsets.all(16.0),
     width: double.infinity,
@@ -189,7 +197,7 @@ Widget BookingCard(
               ),
             ),
             Text(
-              'Refund: EGP ${restaurant.refundAmount.toStringAsFixed(0)}',
+              'Refund on arrival: EGP ${refundValue.toStringAsFixed(0)}',
               style: TextStyle(
                 fontSize: 12,
                 color: Colors.grey,

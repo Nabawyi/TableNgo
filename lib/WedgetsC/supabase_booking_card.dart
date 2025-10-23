@@ -1,24 +1,22 @@
+// ignore_for_file: deprecated_member_use, non_constant_identifier_names
+
+import 'package:tablengo/data/booking_item.dart';
 import 'package:flutter/material.dart';
 
-// ignore: non_constant_identifier_names
-Widget BookingCard(Map<String, dynamic> bookingData, int index) {
-  // Extract values safely
-  final restaurantName = bookingData['restaurant_name'] ?? 'Unknown';
-  final location = bookingData['location'] ?? 'Unknown';
-  final bookingDate = bookingData['booking_date'] != null
-      ? DateTime.parse(bookingData['booking_date'])
-      : null;
-  final time = bookingData['time'] ?? '--:--';
-  final seats = bookingData['seats'] ?? '-';
-  final double deposit = (bookingData['deposit'] ?? 0.0).toDouble();
-  final double refund = (bookingData['refund'] ?? 0.0).toDouble();
-  final double totalPayable = deposit - refund;
+/// Updated BookingCard widget that works with Supabase booking data
+/// This widget displays booking information from the booking_history table
+Widget SupabaseBookingCard(BookingItem booking, {int? index}) {
+  // Get the actual booking ID from the database
+  final bookingId = booking.id;
 
-  final status = bookingData['status'] ?? 'pending';
+  // Calculate refund value from the stored refund amount
+  final refundValue =
+      booking.restaurant.refundAmount; // This will be the refund amount from DB
+
   return Container(
     padding: const EdgeInsets.all(16.0),
     width: double.infinity,
-    height: 270,
+    height: 250,
     margin: const EdgeInsets.only(bottom: 16.0),
     decoration: BoxDecoration(
       color: Colors.white,
@@ -36,18 +34,18 @@ Widget BookingCard(Map<String, dynamic> bookingData, int index) {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
-        // Restaurant name + status
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              restaurantName,
+              booking.restaurant.name,
               style: const TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
                 color: Colors.black87,
               ),
             ),
+            // Dynamic status badge based on booking status
             Container(
               margin: const EdgeInsets.only(left: 8.0),
               padding: const EdgeInsets.symmetric(
@@ -55,60 +53,35 @@ Widget BookingCard(Map<String, dynamic> bookingData, int index) {
                 vertical: 4.0,
               ),
               decoration: BoxDecoration(
-                color: () {
-                  switch (status) {
-                    case 'completed':
-                      return Colors.green.shade100;
-                    case 'confirmed':
-                      return Colors.blue.shade100;
-                    case 'cancelled':
-                      return Colors.red.shade100;
-                    default:
-                      return Colors.orange.shade100; // pending
-                  }
-                }(),
+                color: _getStatusColor(booking.status).withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8.0),
               ),
               child: Text(
-                status.toString().toUpperCase(),
+                _getStatusText(booking.status),
                 style: TextStyle(
                   fontSize: 12,
+                  color: _getStatusColor(booking.status),
                   fontWeight: FontWeight.bold,
-                  color: () {
-                    switch (status) {
-                      case 'completed':
-                        return Colors.green;
-                      case 'confirmed':
-                        return Colors.blue;
-                      case 'cancelled':
-                        return Colors.red;
-                      default:
-                        return Colors.orange; // pending
-                    }
-                  }(),
                 ),
               ),
             ),
-
           ],
         ),
-
         const SizedBox(height: 4),
         Row(
           children: [
-            const Icon(
+            Icon(
               Icons.location_on_outlined,
-              color: Colors.grey,
+              color: Colors.grey.shade400,
               size: 16,
             ),
             const SizedBox(width: 4),
             Text(
-              location,
-              style: const TextStyle(fontSize: 12, color: Colors.grey),
+              booking.restaurant.location,
+              style: TextStyle(fontSize: 12, color: Colors.grey.shade400),
             ),
           ],
         ),
-
         const SizedBox(height: 12),
         Container(
           padding: const EdgeInsets.all(10.0),
@@ -121,7 +94,6 @@ Widget BookingCard(Map<String, dynamic> bookingData, int index) {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Booking ID
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -134,7 +106,7 @@ Widget BookingCard(Map<String, dynamic> bookingData, int index) {
                     ),
                   ),
                   Text(
-                    '#${bookingData['id']}',
+                    '#$bookingId',
                     style: const TextStyle(
                       fontSize: 12,
                       color: Colors.grey,
@@ -144,8 +116,6 @@ Widget BookingCard(Map<String, dynamic> bookingData, int index) {
                 ],
               ),
               const SizedBox(height: 8),
-
-              // Date + time + seats
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -158,10 +128,8 @@ Widget BookingCard(Map<String, dynamic> bookingData, int index) {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        bookingDate != null
-                            ? '${bookingDate.day.toString().padLeft(2, '0')} '
-                                  '${_monthName(bookingDate.month)}, ${bookingDate.year}'
-                            : '—',
+                        '${booking.bookingDate.day.toString().padLeft(2, '0')} '
+                        '${_monthName(booking.bookingDate.month)}, ${booking.bookingDate.year}',
                         style: const TextStyle(
                           fontSize: 12,
                           color: Colors.grey,
@@ -178,7 +146,7 @@ Widget BookingCard(Map<String, dynamic> bookingData, int index) {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        time,
+                        booking.restaurant.time,
                         style: const TextStyle(
                           fontSize: 12,
                           color: Colors.grey,
@@ -195,7 +163,11 @@ Widget BookingCard(Map<String, dynamic> bookingData, int index) {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        seats,
+                        booking.restaurant.seatData.isNotEmpty
+                            ? booking.restaurant.seatData[booking
+                                      .selectedSeatIndex]['seats']
+                                  as String
+                            : 'N/A',
                         style: const TextStyle(
                           fontSize: 12,
                           color: Colors.grey,
@@ -208,22 +180,24 @@ Widget BookingCard(Map<String, dynamic> bookingData, int index) {
             ],
           ),
         ),
-
         const SizedBox(height: 12),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text("Deposit: $deposit"),
             Text(
-              'Refund on arrival: EGP $refund',
-              style: const TextStyle(color: Colors.grey, fontSize: 12),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              "Total Payable: $totalPayable",
+              'Deposit: EGP ${_getDepositAmount(booking)}',
               style: const TextStyle(
+                fontSize: 12,
+                color: Colors.grey,
                 fontWeight: FontWeight.bold,
-                color: Colors.deepOrange,
+              ),
+            ),
+            Text(
+              'Refund on arrival: EGP ${refundValue.toStringAsFixed(0)}',
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey,
+                fontWeight: FontWeight.bold,
               ),
             ),
           ],
@@ -233,21 +207,75 @@ Widget BookingCard(Map<String, dynamic> bookingData, int index) {
   );
 }
 
+/// Get the appropriate color for the booking status
+Color _getStatusColor(String status) {
+  switch (status.toLowerCase()) {
+    case 'pending':
+      return Colors.orange;
+    case 'completed':
+      return Colors.green;
+    case 'cancelled':
+      return Colors.red;
+    case 'confirmed':
+      return Colors.blue;
+    default:
+      return Colors.grey;
+  }
+}
+
+/// Get the display text for the booking status
+String _getStatusText(String status) {
+  switch (status.toLowerCase()) {
+    case 'pending':
+      return 'Pending';
+    case 'completed':
+      return 'Completed';
+    case 'cancelled':
+      return 'Cancelled';
+    case 'confirmed':
+      return 'Confirmed';
+    default:
+      return 'Unknown';
+  }
+}
+
+/// Get the deposit amount from booking data
+String _getDepositAmount(BookingItem booking) {
+  if (booking.restaurant.seatData.isNotEmpty) {
+    final seatData = booking.restaurant.seatData[booking.selectedSeatIndex];
+    final deposit = seatData['Deposit'] as String? ?? '0';
+    return deposit.replaceAll(RegExp(r'[^0-9.]'), '');
+  }
+  return '0';
+}
+
 String _monthName(int month) {
-  const months = [
-    '',
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'May',
-    'Jun',
-    'Jul',
-    'Aug',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Dec',
-  ];
-  return months[month];
+  switch (month) {
+    case 1:
+      return 'Jan';
+    case 2:
+      return 'Feb';
+    case 3:
+      return 'Mar';
+    case 4:
+      return 'Apr';
+    case 5:
+      return 'May';
+    case 6:
+      return 'Jun';
+    case 7:
+      return 'Jul';
+    case 8:
+      return 'Aug';
+    case 9:
+      return 'Sep';
+    case 10:
+      return 'Oct';
+    case 11:
+      return 'Nov';
+    case 12:
+      return 'Dec';
+    default:
+      return '';
+  }
 }

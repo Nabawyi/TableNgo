@@ -1,7 +1,7 @@
 // ignore_for_file: file_names, deprecated_member_use
 
-import 'package:TableNgo/Screens/Auth_Pages/login_page.dart';
-import 'package:TableNgo/Screens/Auth_Pages/sign_in_page.dart';
+import 'package:tablengo/Screens/Auth_Pages/login_page.dart';
+import 'package:tablengo/Screens/Auth_Pages/sign_in_page.dart';
 import 'package:flutter/material.dart';
 
 class WelcomeScreen extends StatefulWidget {
@@ -34,7 +34,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               CustomContainer(icon: Icons.restaurant_outlined),
               SizedBox(height: 10),
               Text(
-                "TableNgo",
+                "tablengo",
                 style: TextStyle(
                   fontSize: 30,
                   color: Colors.white,
@@ -130,7 +130,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () {
-        
                     Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -143,10 +142,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     elevation: 10,
                     shadowColor: Colors.black87,
                     backgroundColor: Colors.white.withOpacity(0.8),
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 50,
-                      vertical: 15,
-                    ),
+                    padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(15),
                     ),
@@ -178,10 +174,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     elevation: 10,
                     shadowColor: Colors.black87,
                     backgroundColor: Colors.white.withOpacity(0.8),
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 50,
-                      vertical: 15,
-                    ),
+                    padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(15),
                     ),

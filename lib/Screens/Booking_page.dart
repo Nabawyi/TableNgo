@@ -1,8 +1,9 @@
 // ignore_for_file: file_names, deprecated_member_use
-import 'package:TableNgo/WedgetsC/booking_details_card.dart';
-import 'package:TableNgo/WedgetsC/seat_card.dart';
-import 'package:TableNgo/data/resturant_data.dart';
+import 'package:tablengo/WedgetsC/booking_details_card.dart';
+import 'package:tablengo/WedgetsC/seat_card.dart';
+import 'package:tablengo/data/resturant_data.dart';
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class BookingPage extends StatefulWidget {
   final ResturantData restaurant;
@@ -20,6 +21,7 @@ class BookingPage extends StatefulWidget {
 class _BookingPageState extends State<BookingPage> {
   static List<ResturantData> bookedRestaurantsGlobal = [];
   int? selectedSeatIndex;
+
   @override
   Widget build(BuildContext context) {
     final resturant = widget.restaurant;
@@ -27,12 +29,16 @@ class _BookingPageState extends State<BookingPage> {
       appBar: AppBar(
         title: Image.asset('assets/images/Logo_orange.png', height: 50),
         centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.deepOrange),
+          onPressed: () => Navigator.pop(context),
+        ),
         elevation: 0,
         backgroundColor: Colors.white,
         foregroundColor: Colors.deepOrange,
       ),
       body: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
+        physics: const AlwaysScrollableScrollPhysics(),
         child: Column(
           children: [
             Image.network(
@@ -79,7 +85,6 @@ class _BookingPageState extends State<BookingPage> {
                 resturant.seatData[selectedSeatIndex!]['time'] ?? '',
                 resturant.seatData[selectedSeatIndex!]['Deposit'] ?? '',
                 resturant.refundAmount,
-                
               ),
               const SizedBox(height: 15),
               SizedBox(
@@ -88,20 +93,65 @@ class _BookingPageState extends State<BookingPage> {
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: ElevatedButton(
-                    onPressed: () {
-                      if (!bookedRestaurantsGlobal.contains(
-                        widget.restaurant,
-                      )) {
-                        bookedRestaurantsGlobal.add(widget.restaurant);
-                      }
+                    onPressed: () async {
+                      if (selectedSeatIndex == null) return;
+                      // ✅ 1. Prepare booking data
                       final int seatIndex = selectedSeatIndex!;
                       final DateTime bookingDate = DateTime.now();
-                      widget.onBookNow(
-                        widget.restaurant,
-                        seatIndex,
-                        bookingDate,
-                      );
-                      Navigator.pop(context);
+                      final restaurant = widget.restaurant;
+                      final Map<String, dynamic> bookingData = {
+                        'restaurant_name': restaurant.name,
+                        'location': restaurant.location,
+                        'seat_index': seatIndex,
+                        'booking_date': bookingDate.toIso8601String(),
+                        'time': restaurant.seatData[seatIndex]['time'],
+                        'seats': restaurant.seatData[seatIndex]['seats'],
+                        'deposit': double.tryParse(
+                          restaurant.seatData[seatIndex]['Deposit']
+                              .toString()
+                              .replaceAll(RegExp(r'[^0-9.]'), ''),
+                        ),
+                        'refund':
+                            (double.tryParse(
+                                  restaurant.seatData[seatIndex]['Deposit']
+                                      .toString()
+                                      .replaceAll(RegExp(r'[^0-9.]'), ''),
+                                ) ??
+                                0.0) *
+                            (restaurant.refundAmount / 100),
+                        'status': 'pending',
+                      };
+
+                      // ✅ 2. Insert booking data into Supabase
+                      try {
+                        final supabase = Supabase.instance.client;
+                        await supabase
+                            .from('booking_history')
+                            .insert(bookingData);
+
+                        // ✅ 3. Update local UI after successful booking
+                        if (!bookedRestaurantsGlobal.contains(restaurant)) {
+                          bookedRestaurantsGlobal.add(restaurant);
+                        }
+
+                        widget.onBookNow(restaurant, seatIndex, bookingDate);
+
+                        // ✅ 4. Navigate back to booking history
+                        Navigator.pop(context);
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("Booking added successfully ✅"),
+                          ),
+                        );
+                      } catch (e) {
+                        print('❌ Error inserting booking: $e');
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("Failed to add booking ❌"),
+                          ),
+                        );
+                      }
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.deepOrange,

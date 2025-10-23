@@ -2,27 +2,47 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import 'package:TableNgo/Screens/splash_screen.dart';
+import 'package:tablengo/Screens/splash_screen.dart';
+import 'package:tablengo/config/supabase_config.dart';
+import 'package:tablengo/utils/logger.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Supabase
-  const String supabaseUrl = 'https://hahtppvichfutzsvydye.supabase.co';
-  const String supabaseAnonKey =
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhhaHRwcHZpY2hmdXR6c3Z5ZHllIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA0NDAwMjAsImV4cCI6MjA3NjAxNjAyMH0.4h3zolshVbylzwWw46CgrCi1yzZqQVZA6nRLRvzlQ0E';
+  try {
+    Logger.log('Initializing Supabase...', tag: 'SUPABASE');
 
-  await Supabase.initialize(url: supabaseUrl, anonKey: supabaseAnonKey);
+    // Initialize Supabase with configuration
+    await Supabase.initialize(
+      url: SupabaseConfig.supabaseUrl,
+      anonKey: SupabaseConfig.supabaseAnonKey,
+    );
 
-  // Global auth state listener
-  final supabase = Supabase.instance.client;
-  supabase.auth.onAuthStateChange.listen((data) {
-    final event = data.event;
-    final session = data.session;
-    print('🔁 Auth change: $event | Session: ${session?.user.email}');
-  });
+    Logger.log('Supabase initialized successfully', tag: 'SUPABASE');
+
+    // Global auth state listener with enhanced logging
+    final supabase = Supabase.instance.client;
+    supabase.auth.onAuthStateChange.listen((data) {
+      final event = data.event;
+      final session = data.session;
+      Logger.log(
+        'Auth change: $event | Session: ${session?.user.email}',
+        tag: 'AUTH',
+      );
+    });
+
+    Logger.log('Auth state listener configured', tag: 'SUPABASE');
+  } catch (e, stackTrace) {
+    Logger.error(
+      'Failed to initialize Supabase',
+      tag: 'SUPABASE',
+      error: e,
+      stackTrace: stackTrace,
+    );
+    // Continue app initialization even if Supabase fails
+  }
+
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-
   runApp(const MyApp());
 }
 
@@ -33,7 +53,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'TableNgo',
+      title: 'tablengo',
       theme: ThemeData(colorSchemeSeed: Colors.deepOrange, useMaterial3: true),
       home: const SplashScreen(),
     );

@@ -1,5 +1,5 @@
-import 'package:TableNgo/Screens/Welcome_screen.dart';
-import 'package:TableNgo/Screens/splash_screen.dart';
+import 'package:tablengo/Screens/Welcome_screen.dart';
+import 'package:tablengo/Screens/splash_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 

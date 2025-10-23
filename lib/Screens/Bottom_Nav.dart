@@ -1,12 +1,12 @@
 // ignore_for_file: file_names
 
 import 'package:flutter/material.dart';
-import 'package:TableNgo/Screens/Home_page.dart';
-import 'package:TableNgo/Screens/booking_history.dart';
-import 'package:TableNgo/Screens/profile_page.dart';
-import 'package:TableNgo/Screens/booking_page.dart';
-import 'package:TableNgo/data/resturant_data.dart';
-import 'package:TableNgo/data/booking_item.dart';
+import 'package:tablengo/Screens/Home_page.dart';
+import 'package:tablengo/Screens/booking_history.dart';
+import 'package:tablengo/Screens/profile_page.dart';
+import 'package:tablengo/Screens/booking_page.dart';
+import 'package:tablengo/data/resturant_data.dart';
+import 'package:tablengo/data/booking_item.dart';
 
 class BottomNavExample extends StatefulWidget {
   const BottomNavExample({super.key});
@@ -89,6 +89,8 @@ class _BottomNavExampleState extends State<BottomNavExample> {
             setState(() {
               bookedRestaurants.add(
                 BookingItem(
+                  id: 0,
+                  status: '',
                   restaurant: restaurant,
                   selectedSeatIndex: selectedSeatIndex,
                   bookingDate: bookingDate,
@@ -108,6 +110,8 @@ class _BottomNavExampleState extends State<BottomNavExample> {
                   setState(() {
                     bookedRestaurants.add(
                       BookingItem(
+                        id: 0,
+                        status: '',
                         restaurant: r,
                         selectedSeatIndex: seatIndex,
                         bookingDate: date,
@@ -124,7 +128,7 @@ class _BottomNavExampleState extends State<BottomNavExample> {
         );
       case 1:
         return MyBookingHistoy(
-          bookedRestaurants: bookedRestaurants,
+          bookings: bookedRestaurants,
           restaurant: ResturantData(
             name: '',
             image: '',
@@ -145,6 +149,8 @@ class _BottomNavExampleState extends State<BottomNavExample> {
             setState(() {
               bookedRestaurants.add(
                 BookingItem(
+                  id: 0,
+                  status: '',
                   restaurant: restaurant,
                   selectedSeatIndex: selectedSeatIndex,
                   bookingDate: bookingDate,
@@ -164,6 +170,8 @@ class _BottomNavExampleState extends State<BottomNavExample> {
                   setState(() {
                     bookedRestaurants.add(
                       BookingItem(
+                        id: 0,
+                        status: '',
                         restaurant: r,
                         selectedSeatIndex: seatIndex,
                         bookingDate: date,

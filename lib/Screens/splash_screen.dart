@@ -1,6 +1,7 @@
 import 'dart:async';
-import 'package:TableNgo/Screens/Welcome_screen.dart';
-import 'package:TableNgo/Screens/bottom_nav.dart';
+import 'package:tablengo/Screens/Welcome_screen.dart';
+import 'package:tablengo/Screens/bottom_nav.dart';
+import 'package:tablengo/utils/logger.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -17,26 +18,51 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    Timer(const Duration(seconds: 2),()async {
-      await Future.delayed(const Duration(seconds: 2)); 
+    Logger.log('Splash screen initialized', tag: 'SPLASH');
 
-    final session = supabase.auth.currentSession;
+    Timer(const Duration(seconds: 2), () async {
+      try {
+        await Future.delayed(const Duration(seconds: 2));
 
-    if (session != null) {
-      print("✅ User logged in: ${session.user.email}");
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const BottomNavExample()),
-      );
-    } else {
-      print("🚪 No session found. Redirecting to WelcomeScreen...");
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const WelcomeScreen()),
-      );
-    }
-      
-    },);
+        Logger.log('Checking authentication status...', tag: 'SPLASH');
+        final session = supabase.auth.currentSession;
+
+        if (session != null) {
+          Logger.log('User logged in: ${session.user.email}', tag: 'SPLASH');
+          if (mounted) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (_) => const BottomNavExample()),
+            );
+          }
+        } else {
+          Logger.log(
+            'No session found. Redirecting to WelcomeScreen...',
+            tag: 'SPLASH',
+          );
+          if (mounted) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (_) => const WelcomeScreen()),
+            );
+          }
+        }
+      } catch (e, stackTrace) {
+        Logger.error(
+          'Error in splash screen navigation',
+          tag: 'SPLASH',
+          error: e,
+          stackTrace: stackTrace,
+        );
+        if (mounted) {
+          // Fallback to welcome screen on error
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const WelcomeScreen()),
+          );
+        }
+      }
+    });
   }
 
   @override

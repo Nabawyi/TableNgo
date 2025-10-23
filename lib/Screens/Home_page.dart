@@ -2,8 +2,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:TableNgo/data/resturant_data.dart';
-import 'package:TableNgo/WedgetsC/search_bar.dart';
+import 'package:tablengo/data/resturant_data.dart';
+import 'package:tablengo/WedgetsC/search_bar.dart';
 
 class SearchPage extends StatefulWidget {
   final Function(ResturantData, int, DateTime) onBooking;
@@ -108,19 +108,23 @@ class _SearchPageState extends State<SearchPage> {
           ],
         ),
       ),
-      body: Column(
-        children: [
-          searchBar(),
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(8),
-              itemCount: restaurants.length,
-              itemBuilder: (context, index) {
-                return cardCustom(restaurants[index], index);
-              },
+      body: RefreshIndicator(
+        color: Colors.deepOrange,
+        onRefresh: loadRestaurants,
+        child: Column(
+          children: [
+            searchBar(),
+            Expanded(
+              child: ListView.builder(
+                padding: const EdgeInsets.all(8),
+                itemCount: restaurants.length,
+                itemBuilder: (context, index) {
+                  return cardCustom(restaurants[index], index);
+                },
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

@@ -1,22 +1,18 @@
 // ignore_for_file: deprecated_member_use
 
-import 'package:TableNgo/WedgetsC/booking_card.dart';
-import 'package:TableNgo/data/resturant_data.dart';
-import 'package:TableNgo/data/booking_item.dart';
+import 'package:tablengo/data/booking_item.dart';
+import 'package:tablengo/data/resturant_data.dart';
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:tablengo/WedgetsC/booking_card.dart';
 
 class MyBookingHistoy extends StatefulWidget {
-  final List<BookingItem> bookedRestaurants;
-  final ResturantData restaurant;
-  final int index;
-  final int selectedSeatIndex;
-
   const MyBookingHistoy({
     super.key,
-    required this.restaurant,
-    required this.index,
-    required this.selectedSeatIndex,
-    required this.bookedRestaurants,
+    required int index,
+    required int selectedSeatIndex,
+    required List<BookingItem> bookings,
+    required ResturantData restaurant,
   });
 
   @override
@@ -24,12 +20,37 @@ class MyBookingHistoy extends StatefulWidget {
 }
 
 class _MyBookingHistoyState extends State<MyBookingHistoy> {
-  late List<BookingItem> bookedRestaurants;
+  final SupabaseClient supabase = Supabase.instance.client;
+  List<Map<String, dynamic>> bookings = [];
+  bool isLoading = true;
+  
 
   @override
   void initState() {
     super.initState();
-    bookedRestaurants = widget.bookedRestaurants; // ✅ now holds the actual list
+    fetchBookings();
+  }
+
+  /// ✅ Fetch bookings from Supabase
+  Future<void> fetchBookings() async {
+      final user = supabase.auth.currentUser;
+
+    try {
+      final response = await supabase
+          .from('booking_history')
+          .select()
+          .eq('user_id', user!.id)
+          .order('id', ascending: false);
+      setState(() {
+        bookings = List<Map<String, dynamic>>.from(response);
+        isLoading = false;
+      });
+    } catch (e) {
+      print('Error fetching bookings: $e');
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
 
   @override
@@ -49,35 +70,35 @@ class _MyBookingHistoyState extends State<MyBookingHistoy> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.deepOrange),
-          onPressed: () {
-            Navigator.pop(context);
-          },
+          onPressed: () => Navigator.pop(context),
         ),
       ),
-      //bottomNavigationBar: BottomNavExample(),
-      body: bookedRestaurants.isEmpty
+
+      body: isLoading
+          ? const Center(
+              child: CircularProgressIndicator(color: Colors.deepOrange),
+            )
+          : bookings.isEmpty
           ? const Center(
               child: Text(
                 "No bookings yet",
                 style: TextStyle(fontSize: 16, color: Colors.grey),
               ),
             )
-          : Container(
-              padding: const EdgeInsets.all(16.0),
-              width: double.infinity,
-              child: ListView.builder(
-                itemCount: bookedRestaurants.length,
-                itemBuilder: (context, index) {
-                  final item = bookedRestaurants[index];
-                  return BookingCard(
-                    item.restaurant,
-                    index,
-                    item.selectedSeatIndex,
-                    bookingDate: item.bookingDate,
-                  );
-                },
+          : RefreshIndicator(
+            color: Colors.deepOrange,
+            onRefresh: fetchBookings,
+            child: Container(
+                padding: const EdgeInsets.all(16.0),
+                width: double.infinity,
+                child: ListView.builder(
+                  itemCount: bookings.length,
+                  itemBuilder: (context, index) {
+                    return BookingCard(bookings[index], index);
+                  },
+                ),
               ),
-            ),
+          ),
     );
   }
 }

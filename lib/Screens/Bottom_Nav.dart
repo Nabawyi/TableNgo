@@ -142,7 +142,7 @@ class _BottomNavExampleState extends State<BottomNavExample> {
           selectedSeatIndex: 0,
         );
       case 2:
-        return const ProfileScreen();
+        return  ProfileScreen();
       default:
         return SearchPage(
           onBooking: (restaurant, selectedSeatIndex, bookingDate) {

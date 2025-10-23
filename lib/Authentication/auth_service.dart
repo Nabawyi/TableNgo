@@ -43,6 +43,8 @@ class AuthService {
 
   //Sign up
   Future<AuthResponse> signupwithEmailandPassword(
+    String username,
+    String phone,
     String email,
     String password,
   ) async {
@@ -50,6 +52,7 @@ class AuthService {
       Logger.log('Attempting signup for email: $email', tag: 'AUTH_SERVICE');
 
       final response = await _subabase.auth.signUp(
+        data: {'User_Name':username, 'phone': phone},
         email: email,
         password: password,
       );

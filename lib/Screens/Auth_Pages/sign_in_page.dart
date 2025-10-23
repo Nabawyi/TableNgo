@@ -14,12 +14,16 @@ class _SignInPageState extends State<SignInPage> {
   @override
   Widget build(BuildContext context) {
     final authservice = AuthService();
+    final usernameController = TextEditingController();
+    final phoneController = TextEditingController();
 
     final emailContoller = TextEditingController();
     final passwordContoller = TextEditingController();
     final confirmpasswordContoller = TextEditingController();
 
     void signup() async {
+      final username = usernameController.text;
+      final phoneNumber = phoneController.text;
       final email = emailContoller.text;
       final password = passwordContoller.text;
       final confpassword = confirmpasswordContoller.text;
@@ -29,7 +33,7 @@ class _SignInPageState extends State<SignInPage> {
         ).showSnackBar(SnackBar(content: Text("passwords don't match")));
       }
       try {
-        await authservice.signupwithEmailandPassword(email, password);
+        await authservice.signupwithEmailandPassword(username,phoneNumber,email,password);
         Navigator.pop(context);
       } catch (e) {
         if (mounted) {
@@ -73,35 +77,110 @@ class _SignInPageState extends State<SignInPage> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   const SizedBox(height: 40),
+                  //UserName
+                  TextField(
+                    cursorColor: Colors.white70,
+                    keyboardType: TextInputType.name,
+                    style: TextStyle(color: Colors.white70),
+                    controller: usernameController,
+                    decoration: InputDecoration(
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(20),
+                        borderSide: BorderSide(color: Colors.white),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                          color: Colors.deepOrange,
+                          width: 1.5,
+                        ),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      filled: true,
+                      fillColor: const Color.fromARGB(82, 252, 252, 252),
+                      prefixIcon: const Icon(
+                        Icons.person_outline_outlined,
+                        color: Colors.white70,
+                      ),
 
-                  // Title
-                  Text(
-                    'Welcome',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
+                      labelText: 'Username',
+                      labelStyle: TextStyle(color: Colors.white, fontSize: 14),
+                      border: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.deepOrange),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
                     ),
                   ),
+                  const SizedBox(height: 16),
+                  //phone Number
+                  TextFormField(
+                    controller: phoneController,
+                    keyboardType: TextInputType.phone,
+                    cursorColor: Colors.white70,
+                    style: const TextStyle(color: Colors.white70),
+                    decoration: InputDecoration(
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(20),
+                        borderSide: const BorderSide(color: Colors.white),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: const BorderSide(
+                          color: Colors.deepOrange,
+                          width: 1.5,
+                        ),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      filled: true,
+                      fillColor: const Color.fromARGB(82, 252, 252, 252),
+                      prefixIcon: const Icon(
+                        Icons.phone_android_outlined,
+                        color: Colors.white70,
+                      ),
+                      labelText: 'Phone number',
+                      labelStyle: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                      ),
+                      border: OutlineInputBorder(
+                        borderSide: const BorderSide(color: Colors.deepOrange),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter your phone number';
+                      }
+                      final egyptPhoneRegExp = RegExp(
+                        r'^(?:\+20|0020|0)?1[0-2,5][0-9]{8}$',
+                      );
 
-                  const SizedBox(height: 32),
+                      if (!egyptPhoneRegExp.hasMatch(value)) {
+                        return 'Enter a valid Egyptian phone number';
+                      }
+                      return null;
+                    },
+                  ),
 
+                  const SizedBox(height: 16),
                   // Email Field
                   TextField(
                     cursorColor: Colors.white70,
-
                     keyboardType: TextInputType.emailAddress,
                     style: TextStyle(color: Colors.white70),
-
                     controller: emailContoller,
                     decoration: InputDecoration(
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20),
                         borderSide: BorderSide(color: Colors.white),
                       ),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                          color: Colors.deepOrange,
+                          width: 1.5,
+                        ),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
                       filled: true,
-                      fillColor: const Color.fromARGB(82, 255, 255, 255),
+                      fillColor: const Color.fromARGB(82, 252, 252, 252),
                       prefixIcon: const Icon(
                         Icons.email_outlined,
                         color: Colors.white70,
@@ -116,7 +195,6 @@ class _SignInPageState extends State<SignInPage> {
                     ),
                   ),
                   const SizedBox(height: 16),
-
                   // Password Field
                   TextField(
                     cursorColor: Colors.white70,
@@ -126,6 +204,13 @@ class _SignInPageState extends State<SignInPage> {
                     controller: passwordContoller,
                     obscureText: true,
                     decoration: InputDecoration(
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                          color: Colors.deepOrange,
+                          width: 1.5,
+                        ),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20),
                         borderSide: BorderSide(color: Colors.white),
@@ -146,7 +231,6 @@ class _SignInPageState extends State<SignInPage> {
                     ),
                   ),
                   const SizedBox(height: 16),
-
                   // Password Field
                   TextField(
                     cursorColor: Colors.white70,
@@ -155,6 +239,13 @@ class _SignInPageState extends State<SignInPage> {
                     controller: confirmpasswordContoller,
                     obscureText: true,
                     decoration: InputDecoration(
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                          color: Colors.deepOrange,
+                          width: 1.5,
+                        ),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20),
                         borderSide: BorderSide(color: Colors.white),
@@ -175,7 +266,6 @@ class _SignInPageState extends State<SignInPage> {
                     ),
                   ),
                   const SizedBox(height: 24),
-
                   // Sign In Button
                   SizedBox(
                     height: 60,
@@ -207,14 +297,13 @@ class _SignInPageState extends State<SignInPage> {
                   const SizedBox(height: 10),
 
                   // Forgot Password
-                  TextButton(
-                    onPressed: () {},
-                    child: const Text(
-                      'Forgot Password?',
-                      style: TextStyle(color: Colors.white70, fontSize: 14),
-                    ),
-                  ),
-
+                  // TextButton(
+                  //   onPressed: () {},
+                  //   child: const Text(
+                  //     'Forgot Password?',
+                  //     style: TextStyle(color: Colors.white70, fontSize: 14),
+                  //   ),
+                  // ),
                   const SizedBox(height: 40),
                 ],
               ),

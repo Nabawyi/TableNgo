@@ -1,6 +1,11 @@
+// ignore_for_file: unused_import
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:tablengo/Authentication/auth_gate.dart';
+import 'package:tablengo/Screens/Auth_Pages/sign_in_page.dart';
+import 'package:tablengo/Screens/Welcome_screen.dart';
 
 import 'package:tablengo/Screens/splash_screen.dart';
 import 'package:tablengo/config/supabase_config.dart';
@@ -55,7 +60,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'tablengo',
       theme: ThemeData(colorSchemeSeed: Colors.deepOrange, useMaterial3: true),
-      home: const SplashScreen(),
+      home:  AuthGate(),
     );
   }
 }

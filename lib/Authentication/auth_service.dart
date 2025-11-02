@@ -97,4 +97,36 @@ class AuthService {
       rethrow;
     }
   }
+  Future<int?> getOwnerRestaurantId(String email) async {
+    try {
+      final response = await _subabase
+          .from('restaurant_owners')
+          .select('restaurant_id')
+          .eq('owner_email', email)
+          .maybeSingle();
+
+      if (response != null && response['restaurant_id'] != null) {
+        Logger.log(
+          'Owner found for $email → restaurant_id: ${response['restaurant_id']}',
+          tag: 'AUTH_SERVICE',
+        );
+        return response['restaurant_id'] as int;
+      } else {
+        Logger.warn(
+          'No restaurant owner found for $email',
+          tag: 'AUTH_SERVICE',
+        );
+        return null;
+      }
+    } catch (e, stackTrace) {
+      Logger.error(
+        'Error checking owner status',
+        tag: 'AUTH_SERVICE',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return null;
+    }
+  }
+
 }

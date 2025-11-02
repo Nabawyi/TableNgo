@@ -1,4 +1,7 @@
+// lib/models/restaurant_data.dart
 class ResturantData {
+  final String? userPhone;
+  final String? userName;
   final int? id;
   final String name;
   final String image;
@@ -9,6 +12,8 @@ class ResturantData {
   final List<Map<String, dynamic>> seatData;
 
   ResturantData({
+    this.userPhone,
+    this.userName,
     this.id,
     required this.name,
     required this.image,
@@ -20,53 +25,45 @@ class ResturantData {
   });
 
   factory ResturantData.fromJson(Map<String, dynamic> json) {
-    final dynamic ratingVal = json['rating'];
-    final dynamic refundVal = json['refund_amount'] ?? json['refundAmount'];
-    final dynamic seats = json['seat_data'] ?? json['seatData'];
-
-    double parsedRating;
-    if (ratingVal is num) {
-      parsedRating = ratingVal.toDouble();
-    } else {
-      parsedRating = double.tryParse('${ratingVal ?? 0}') ?? 0.0;
-    }
-
-    double parsedRefund;
-    if (refundVal is num) {
-      parsedRefund = refundVal.toDouble();
-    } else {
-      parsedRefund = double.tryParse('${refundVal ?? 0}') ?? 0.0;
-    }
-
+    final seats = json['seat_data'] ?? json['seatData'];
     List<Map<String, dynamic>> parsedSeatData = [];
     if (seats is List) {
-      parsedSeatData = seats
-          .whereType<Map>()
-          .map((e) => Map<String, dynamic>.from(e))
-          .toList();
+      parsedSeatData = seats.map((e) {
+        final map = Map<String, dynamic>.from(e);
+        map['isBooked'] ??= false;
+        map['id'] ??= map.containsKey('seat_number')
+            ? map['seat_number']
+            : parsedSeatData.length + 1;
+        return map;
+      }).toList();
     }
 
-    return ResturantData(
+    double parseDouble(dynamic v) =>
+        (v is num) ? v.toDouble() : double.tryParse('${v ?? 0}') ?? 0.0;
+
+    return ResturantData(      
+      userName: json['user_name'],
+      userPhone: json['user_phone'],
       id: json['id'],
       name: json['name'] ?? '',
       image: json['image'] ?? json['image_url'] ?? '',
       location: json['location'] ?? '',
       time: json['time'] ?? '',
-      rating: parsedRating,
-      refundAmount: parsedRefund,
+      rating: parseDouble(json['rating']),
+      refundAmount: parseDouble(json['refund_amount'] ?? json['refundAmount']),
       seatData: parsedSeatData,
     );
   }
 
-  Map<String, dynamic> toJson() {
-    return {
-      'name': name,
-      'image': image,
-      'location': location,
-      'time': time,
-      'rating': rating,
-      'refund_amount': refundAmount,
-      'seat_data': seatData,
-    };
-  }
+  Map<String, dynamic> toJson() => {
+    'user_name': userName,
+    'user_phone': userPhone,
+    'name': name,
+    'image': image,
+    'location': location,
+    'time': time,
+    'rating': rating,
+    'refund_amount': refundAmount,
+    'seat_data': seatData,
+  };
 }

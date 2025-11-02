@@ -1,4 +1,5 @@
 // ignore_for_file: file_names, deprecated_member_use
+import 'package:tablengo/Screens/booking_history.dart';
 import 'package:tablengo/WedgetsC/booking_details_card.dart';
 import 'package:tablengo/WedgetsC/seat_card.dart';
 import 'package:tablengo/data/resturant_data.dart';
@@ -7,23 +8,25 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 class BookingPage extends StatefulWidget {
   final ResturantData restaurant;
+
   final Function(ResturantData, int, DateTime) onBookNow;
 
-  const BookingPage({
-    super.key,
-    required this.restaurant,
-    required this.onBookNow,
-  });
+  const BookingPage({super.key, required this.restaurant, required this.onBookNow});
   @override
   State<BookingPage> createState() => _BookingPageState();
 }
 
 class _BookingPageState extends State<BookingPage> {
+  final SupabaseClient supabase = Supabase.instance.client;
   static List<ResturantData> bookedRestaurantsGlobal = [];
   int? selectedSeatIndex;
 
   @override
   Widget build(BuildContext context) {
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    final user = supabase.auth.currentUser;
+    final userName = user!.userMetadata?['User_Name'];
+    final userPhone = user.userMetadata?['phone'];
     final resturant = widget.restaurant;
     return Scaffold(
       appBar: AppBar(
@@ -95,12 +98,17 @@ class _BookingPageState extends State<BookingPage> {
                   child: ElevatedButton(
                     onPressed: () async {
                       if (selectedSeatIndex == null) return;
-                      // ✅ 1. Prepare booking data
+
                       final int seatIndex = selectedSeatIndex!;
                       final DateTime bookingDate = DateTime.now();
                       final restaurant = widget.restaurant;
+
                       final Map<String, dynamic> bookingData = {
+                        'user_id': user.id,
+                        'user_name':  userName,
+                        'user_phone':  userPhone,
                         'restaurant_name': restaurant.name,
+                        'restaurant_id': restaurant.id,
                         'location': restaurant.location,
                         'seat_index': seatIndex,
                         'booking_date': bookingDate.toIso8601String(),
@@ -122,22 +130,30 @@ class _BookingPageState extends State<BookingPage> {
                         'status': 'pending',
                       };
 
-                      // ✅ 2. Insert booking data into Supabase
                       try {
                         final supabase = Supabase.instance.client;
                         await supabase
                             .from('booking_history')
                             .insert(bookingData);
 
-                        // ✅ 3. Update local UI after successful booking
                         if (!bookedRestaurantsGlobal.contains(restaurant)) {
                           bookedRestaurantsGlobal.add(restaurant);
                         }
 
                         widget.onBookNow(restaurant, seatIndex, bookingDate);
 
-                        // ✅ 4. Navigate back to booking history
-                        Navigator.pop(context);
+                        // ✅ Navigate to Booking History (and remove navbar)
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => MyBookingHistoy(
+                              index: 0,
+                              selectedSeatIndex: seatIndex,
+                              bookings: [],
+                              restaurant: resturant,
+                            ),
+                          ),
+                        );
 
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(

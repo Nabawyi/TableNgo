@@ -1,6 +1,7 @@
 // ignore_for_file: deprecated_member_use, file_names
 
 import 'package:tablengo/Authentication/auth_service.dart';
+import 'package:tablengo/OWNER/owner_home.dart';
 import 'package:tablengo/Screens/splash_screen.dart';
 import 'package:tablengo/utils/logger.dart';
 import 'package:flutter/material.dart';
@@ -18,7 +19,7 @@ class _LoginPageState extends State<LoginPage> {
   final passwordContoller = TextEditingController();
   bool _isLoading = false;
 
-  void login() async {
+ void login() async {
     if (_isLoading) return;
 
     final email = emailContoller.text.trim();
@@ -42,11 +43,32 @@ class _LoginPageState extends State<LoginPage> {
       );
 
       if (response.session != null) {
-        Logger.log(
-          'Login successful, navigating to splash screen',
-          tag: 'LOGIN_PAGE',
-        );
-        if (mounted) {
+        final userEmail = response.user?.email;
+        Logger.log('Login successful for $userEmail', tag: 'LOGIN_PAGE');
+
+        // ✅ Check if user is a restaurant owner
+        final restaurantId = await authservice.getOwnerRestaurantId(userEmail!);
+
+        if (!mounted) return;
+
+        if (restaurantId != null) {
+          // ✅ Owner found → navigate to OwnerHome
+          Logger.log(
+            'Redirecting to OwnerHome for restaurant_id: $restaurantId',
+            tag: 'LOGIN_PAGE',
+          );
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => OwnerHome(restaurantId: restaurantId),
+            ),
+          );
+        } else {
+          // 👤 Normal user → navigate to SplashScreen or CustomerHome
+          Logger.log(
+            'Normal user login detected, navigating to SplashScreen',
+            tag: 'LOGIN_PAGE',
+          );
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => const SplashScreen()),
@@ -80,6 +102,7 @@ class _LoginPageState extends State<LoginPage> {
       }
     }
   }
+
 
   void _showErrorSnackBar(String message) {
     if (mounted) {

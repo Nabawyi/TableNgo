@@ -51,7 +51,7 @@ class SupabaseService {
   // These methods are kept here for backward compatibility but should use BookingService instead
 
   /// Add a new booking to the booking_history table
-  Future<int> addBooking(
+    Future<int> addBooking(
     ResturantData restaurant,
     int seatIndex,
     DateTime bookingDate,
@@ -60,23 +60,19 @@ class SupabaseService {
       print(
         '🔵 SupabaseService: Adding booking for restaurant ${restaurant.name}',
       );
-
-      // Get seat data for the selected seat
       final seatData = restaurant.seatData[seatIndex];
       final seats = seatData['seats'] ?? '';
       final time = seatData['time'] ?? '';
       final depositStr = seatData['Deposit'] ?? '0';
 
-      // Parse deposit amount
       final deposit =
           double.tryParse(
             depositStr.toString().replaceAll(RegExp(r'[^0-9.]'), ''),
           ) ??
           0.0;
 
-      // Calculate refund amount
       final refund = deposit * (restaurant.refundAmount / 100);
-
+      // ✅ Insert booking
       final response = await supabase
           .from('booking_history')
           .insert({
@@ -89,21 +85,28 @@ class SupabaseService {
             'seats': seats,
             'deposit': deposit,
             'refund': refund,
-            // status will default to 'pending' from database
+            'status': 'pending',
           })
           .select('id');
 
       final bookingId = response.first['id'] as int;
+
+      // ✅ Mark the seat as booked
+      restaurant.seatData[seatIndex]['isBooked'] = true;
+
+      // ✅ Update restaurant data in Supabase
+      await updateRestaurantSeatData(restaurant.id!, restaurant.seatData);
+
       print(
         '✅ SupabaseService: Successfully added booking with ID: $bookingId',
       );
-
       return bookingId;
     } catch (e) {
       print('❌ SupabaseService: Error adding booking: $e');
       rethrow;
     }
   }
+
 
   /// Fetch all bookings from the booking_history table
   Future<List<BookingItem>> fetchBookings() async {
@@ -170,4 +173,43 @@ class SupabaseService {
       return false;
     }
   }
+    /// Update the seat_data of a restaurant
+  Future<void> updateRestaurantSeatData(
+    int restaurantId,
+    List<dynamic> seatData,
+  ) async {
+    try {
+      await supabase
+          .from('restaurants')
+          .update({'seat_data': seatData})
+          .eq('id', restaurantId);
+      print(
+        '✅ SupabaseService: Updated seat_data for restaurant $restaurantId',
+      );
+    } catch (e) {
+      print('❌ SupabaseService: Error updating seat_data: $e');
+      rethrow;
+    }
+  }
+    /// Cancel a booking and free the seat
+  Future<void> cancelBooking(
+    int bookingId,
+    ResturantData restaurant,
+    int seatIndex,
+  ) async {
+    try {
+      // 1. Update booking status
+      await updateStatus(bookingId, 'cancelled');
+
+      // 2. Free up the seat
+      restaurant.seatData[seatIndex]['isBooked'] = false;
+      await updateRestaurantSeatData(restaurant.id!, restaurant.seatData);
+
+      print('✅ SupabaseService: Booking $bookingId cancelled');
+    } catch (e) {
+      print('❌ SupabaseService: Error cancelling booking: $e');
+    }
+  }
+
+
 }

@@ -130,6 +130,7 @@ class _BottomNavExampleState extends State<BottomNavExample> {
         return MyBookingHistoy(
           bookings: bookedRestaurants,
           restaurant: ResturantData(
+            depositPerPerson: 0,
             name: '',
             image: '',
             seatData: const [],
@@ -139,7 +140,6 @@ class _BottomNavExampleState extends State<BottomNavExample> {
             refundAmount: 80,
           ),
           index: 0,
-          selectedSeatIndex: 0,
         );
       case 2:
         return  ProfileScreen();

@@ -1,17 +1,19 @@
-// ignore_for_file: file_names, deprecated_member_use
 import 'package:tablengo/Screens/booking_history.dart';
-import 'package:tablengo/WedgetsC/booking_details_card.dart';
-import 'package:tablengo/WedgetsC/seat_card.dart';
+import 'package:tablengo/WedgetsC/booking_form.dart';
 import 'package:tablengo/data/resturant_data.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class BookingPage extends StatefulWidget {
   final ResturantData restaurant;
-
   final Function(ResturantData, int, DateTime) onBookNow;
 
-  const BookingPage({super.key, required this.restaurant, required this.onBookNow});
+  const BookingPage({
+    super.key,
+    required this.restaurant,
+    required this.onBookNow,
+  });
+
   @override
   State<BookingPage> createState() => _BookingPageState();
 }
@@ -19,15 +21,20 @@ class BookingPage extends StatefulWidget {
 class _BookingPageState extends State<BookingPage> {
   final SupabaseClient supabase = Supabase.instance.client;
   static List<ResturantData> bookedRestaurantsGlobal = [];
-  int? selectedSeatIndex;
+
+  // Form state (passed from BookingForm)
+  DateTime? selectedDate;
+  TimeOfDay? selectedTime;
+  int numberOfSites = 1;
+  double depositPerPerson = 0.0;
+  double refundPercent = 0.0;
 
   @override
   Widget build(BuildContext context) {
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     final user = supabase.auth.currentUser;
-    final userName = user!.userMetadata?['User_Name'];
-    final userPhone = user.userMetadata?['phone'];
-    final resturant = widget.restaurant;
+    final userName = user?.userMetadata?['User_Name'] ?? '';
+    final userPhone = user?.userMetadata?['phone'] ?? '';
+
     return Scaffold(
       appBar: AppBar(
         title: Image.asset('assets/images/Logo_orange.png', height: 50),
@@ -45,149 +52,131 @@ class _BookingPageState extends State<BookingPage> {
         child: Column(
           children: [
             Image.network(
-              resturant.image,
+              widget.restaurant.image,
               fit: BoxFit.cover,
               width: double.infinity,
               height: 200,
             ),
             const SizedBox(height: 20),
             Text(
-              resturant.name,
+              widget.restaurant.name,
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 20),
-            const Text(
-              "Available Seats",
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-            ),
-            const SizedBox(height: 15),
-            Wrap(
-              spacing: 12,
-              runSpacing: 12,
-              children: List.generate(resturant.seatData.length, (index) {
-                final seat = resturant.seatData[index];
-                return SeatCard(
-                  seats: seat['seats'] ?? '',
-                  time: seat['time'] ?? '',
-                  deposit: seat['Deposit'] ?? '',
-                  isSelected: selectedSeatIndex == index,
-                  onSelect: () {
-                    setState(() {
-                      selectedSeatIndex = selectedSeatIndex == index
-                          ? null
-                          : index;
-                    });
-                  },
-                );
-              }),
-            ),
-            const SizedBox(height: 20),
-            if (selectedSeatIndex != null) ...[
-              bookingDetailsCard(
-                resturant.seatData[selectedSeatIndex!]['seats'] ?? '',
-                resturant.seatData[selectedSeatIndex!]['time'] ?? '',
-                resturant.seatData[selectedSeatIndex!]['Deposit'] ?? '',
-                resturant.refundAmount,
+            const SizedBox(height: 10),
+
+            // Booking Form
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: BookingForm(
+                restaurantId: widget.restaurant.id!,
+                onFormChanged: (date, time, sites, deposit, refund) {
+                  setState(() {
+                    selectedDate = date;
+                    selectedTime = time;
+                    numberOfSites = sites;
+                    depositPerPerson = deposit;
+                    refundPercent = refund;
+                  });
+                },
               ),
-              const SizedBox(height: 15),
-              SizedBox(
+            ),
+
+            const SizedBox(height: 20),
+
+            // Book Now Button
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: SizedBox(
                 width: double.infinity,
                 height: 55,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: ElevatedButton(
-                    onPressed: () async {
-                      if (selectedSeatIndex == null) return;
-
-                      final int seatIndex = selectedSeatIndex!;
-                      final DateTime bookingDate = DateTime.now();
-                      final restaurant = widget.restaurant;
-
-                      final Map<String, dynamic> bookingData = {
-                        'user_id': user.id,
-                        'user_name':  userName,
-                        'user_phone':  userPhone,
-                        'restaurant_name': restaurant.name,
-                        'restaurant_id': restaurant.id,
-                        'location': restaurant.location,
-                        'seat_index': seatIndex,
-                        'booking_date': bookingDate.toIso8601String(),
-                        'time': restaurant.seatData[seatIndex]['time'],
-                        'seats': restaurant.seatData[seatIndex]['seats'],
-                        'deposit': double.tryParse(
-                          restaurant.seatData[seatIndex]['Deposit']
-                              .toString()
-                              .replaceAll(RegExp(r'[^0-9.]'), ''),
+                child: ElevatedButton(
+                  onPressed: () async {
+                    if (selectedDate == null || selectedTime == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text("Please select date and time"),
                         ),
-                        'refund':
-                            (double.tryParse(
-                                  restaurant.seatData[seatIndex]['Deposit']
-                                      .toString()
-                                      .replaceAll(RegExp(r'[^0-9.]'), ''),
-                                ) ??
-                                0.0) *
-                            (restaurant.refundAmount / 100),
-                        'status': 'pending',
-                      };
+                      );
+                      return;
+                    }
 
-                      try {
-                        final supabase = Supabase.instance.client;
-                        await supabase
-                            .from('booking_history')
-                            .insert(bookingData);
+                    final String bookedTime =
+                        '${selectedTime!.hour.toString().padLeft(2, '0')}:'
+                        '${selectedTime!.minute.toString().padLeft(2, '0')}:00';
 
-                        if (!bookedRestaurantsGlobal.contains(restaurant)) {
-                          bookedRestaurantsGlobal.add(restaurant);
-                        }
+                    final double deposit = depositPerPerson * numberOfSites;
+                    final double refund = deposit * (refundPercent / 100);
+                    final double totalPayable = deposit - refund;
 
-                        widget.onBookNow(restaurant, seatIndex, bookingDate);
+                    final Map<String, dynamic> bookingData = {
+                      'restaurant_name':widget.restaurant.name,
+                      'restaurant_id': widget.restaurant.id,
+                      'booked_date': selectedDate!
+                          .toIso8601String()
+                          .split('T')
+                          .first,
+                      'booked_time': bookedTime,
+                      'number_of_seats': numberOfSites,
+                      'deposit': deposit,
+                      'refund': refund,
+                      'total_payable': totalPayable,
+                      'status': 'pending',
+                      'user_name': userName,
+                      'user_phone': userPhone,
+                    };
 
-                        // ✅ Navigate to Booking History (and remove navbar)
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => MyBookingHistoy(
-                              index: 0,
-                              selectedSeatIndex: seatIndex,
-                              bookings: [],
-                              restaurant: resturant,
-                            ),
-                          ),
-                        );
+                    try {
+                      await supabase.from('bookings').insert(bookingData);
 
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text("Booking added successfully ✅"),
-                          ),
-                        );
-                      } catch (e) {
-                        print('❌ Error inserting booking: $e');
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text("Failed to add booking ❌"),
-                          ),
-                        );
+                      if (!bookedRestaurantsGlobal.contains(
+                        widget.restaurant,
+                      )) {
+                        bookedRestaurantsGlobal.add(widget.restaurant);
                       }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.deepOrange,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
+
+                      widget.onBookNow(widget.restaurant, -1, selectedDate!);
+
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => MyBookingHistoy(
+                            index: 0,
+                            bookings: [],
+                            restaurant: widget.restaurant,
+                          ),
+                        ),
+                      );
+
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("Booking confirmed!")),
+                      );
+                    } catch (e) {
+                      print('Booking error: $e');
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text("Failed to book. Try again."),
+                        ),
+                      );
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.deepOrange,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Text(
-                      "Book Now",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
+                  ),
+                  child: const Text(
+                    "Book Now",
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
                     ),
                   ),
                 ),
               ),
-            ],
-            const SizedBox(height: 30),
+            ),
+            const SizedBox(height: 20),
           ],
         ),
       ),

@@ -36,7 +36,7 @@ class _SearchPageState extends State<SearchPage> {
       final response = await Supabase.instance.client
           .from('restaurants')
           .select(
-            'id, name, image, location, time, rating, refund_amount, seat_data',
+            'id, name, image, location, time, rating, refund_amount, seat_data,deposit_per_person',
           );
 
       print('✅ Response: $response');

@@ -9,12 +9,14 @@ class ResturantData {
   final String time;
   final double rating;
   final double refundAmount;
+  final int? depositPerPerson;
   final List<Map<String, dynamic>> seatData;
 
   ResturantData({
     this.userPhone,
     this.userName,
     this.id,
+    required this.depositPerPerson,
     required this.name,
     required this.image,
     required this.location,
@@ -41,7 +43,8 @@ class ResturantData {
     double parseDouble(dynamic v) =>
         (v is num) ? v.toDouble() : double.tryParse('${v ?? 0}') ?? 0.0;
 
-    return ResturantData(      
+    return ResturantData(
+
       userName: json['user_name'],
       userPhone: json['user_phone'],
       id: json['id'],
@@ -51,6 +54,7 @@ class ResturantData {
       time: json['time'] ?? '',
       rating: parseDouble(json['rating']),
       refundAmount: parseDouble(json['refund_amount'] ?? json['refundAmount']),
+      depositPerPerson: json['deposit_per_person'],
       seatData: parsedSeatData,
     );
   }
@@ -64,6 +68,7 @@ class ResturantData {
     'time': time,
     'rating': rating,
     'refund_amount': refundAmount,
+    'deposit_per_person':depositPerPerson,
     'seat_data': seatData,
   };
 }

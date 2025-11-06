@@ -1,9 +1,11 @@
+// owner_home.dart
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:tablengo/Screens/Welcome_screen.dart';
 import 'package:tablengo/utils/customerBookingCard.dart';
 
 class OwnerHome extends StatefulWidget {
-  final int restaurantId; // Pass the restaurant ID of the owner
+  final int restaurantId;
 
   const OwnerHome({super.key, required this.restaurantId});
 
@@ -16,19 +18,23 @@ class _OwnerHomeState extends State<OwnerHome> {
   List<Map<String, dynamic>> customerBookingData = [];
   bool isLoading = true;
 
-
   @override
   void initState() {
     super.initState();
     fetchBookings();
   }
 
-  /// ✅ Fetch all bookings for this restaurant
+  /// Fetch bookings with restaurant name joined
   Future<void> fetchBookings() async {
+    setState(() => isLoading = true);
     try {
       final response = await supabase
-          .from('booking_history')
-          .select()
+          .from('bookings')
+          .select('''
+            id, user_name, user_phone, booked_date, booked_time,
+            number_of_seats, deposit, refund, total_payable, status,
+            restaurant:restaurant_id (name)
+          ''')
           .eq('restaurant_id', widget.restaurantId)
           .order('id', ascending: false);
 
@@ -37,25 +43,28 @@ class _OwnerHomeState extends State<OwnerHome> {
         isLoading = false;
       });
     } catch (e) {
-      print('Error fetching bookings: $e');
-      setState(() {
-        isLoading = false;
-      });
+      debugPrint('Error fetching bookings: $e');
+      setState(() => isLoading = false);
     }
   }
 
-  // ✅ Update the Status
+  /// Update status
   Future<void> updateBookingStatus(int bookingId, String newStatus) async {
     try {
       await supabase
-          .from('booking_history')
+          .from('bookings')
           .update({'status': newStatus})
           .eq('id', bookingId);
 
-      // Optional: refresh bookings after update
       await fetchBookings();
     } catch (e) {
-      print('Error updating status: $e');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Update failed: $e'),
+          backgroundColor: Colors.red.shade700,
+        ),
+      );
     }
   }
 
@@ -67,44 +76,65 @@ class _OwnerHomeState extends State<OwnerHome> {
         centerTitle: true,
         elevation: 0,
         leading: Builder(
-          builder: (context) {
-            return IconButton(
-              icon: const Icon(
-                Icons.manage_accounts,
-                color: Colors.deepOrange,
-                size: 30,
-              ),
-              onPressed: () {
-                Scaffold.of(context).openDrawer();
-              },
-            );
-          },
+          builder: (context) => IconButton(
+            icon: const Icon(
+              Icons.manage_accounts,
+              color: Colors.deepOrange,
+              size: 30,
+            ),
+            onPressed: () => Scaffold.of(context).openDrawer(),
+          ),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout, color: Colors.red),
+            onPressed: () =>
+                Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (_) => const WelcomeScreen()),
+                  (route) => false,
+                ),
+          ),
+        ],
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : customerBookingData.isEmpty
-          ? const Center(child: Text('No bookings yet'))
+          ? const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.event_busy, size: 64, color: Colors.grey),
+                  SizedBox(height: 16),
+                  Text(
+                    'No bookings yet',
+                    style: TextStyle(fontSize: 18, color: Colors.grey),
+                  ),
+                ],
+              ),
+            )
           : RefreshIndicator(
-            onRefresh: fetchBookings,
-            child: ListView.builder(
+              onRefresh: fetchBookings,
+              child: ListView.builder(
+                padding: const EdgeInsets.all(8),
                 itemCount: customerBookingData.length,
                 itemBuilder: (context, index) {
                   final booking = customerBookingData[index];
-            
-                  return Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: BookingCardForCustomers(
-                      booking,
-                      index,
-                      context,
-                      booking['status'],
-                      booking['id'],
-                    ),
+                  final restaurantName =
+                      (booking['restaurant'] as Map?)?['name'] ??
+                      'Unknown Restaurant';
+
+                  final displayBooking = Map<String, dynamic>.from(booking)
+                    ..['restaurant_name'] = restaurantName;
+
+                  return BookingCardForCustomers(
+                    displayBooking,
+                    index,
+                    context,
+                    fetchBookings,
                   );
                 },
               ),
-          ),
+            ),
     );
   }
 }

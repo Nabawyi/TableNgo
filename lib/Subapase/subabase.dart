@@ -11,7 +11,7 @@ class SupabaseService {
       final data = await supabase
           .from('restaurants')
           .select(
-            'id, name, image, location, time, rating, refund_amount, seat_data',
+            'id, name, image, location, time, rating, refund_amount, seat_data, deposit_per_person',
           );
       final List<dynamic> rows = data as List<dynamic>;
 
@@ -85,6 +85,7 @@ class SupabaseService {
             'seats': seats,
             'deposit': deposit,
             'refund': refund,
+            'deposit_per_person':restaurant.depositPerPerson,
             'status': 'pending',
           })
           .select('id');
@@ -127,6 +128,7 @@ class SupabaseService {
           // Create a ResturantData object from the stored restaurant data
           final restaurant = ResturantData(
             id: null, // No restaurant_id in new structure
+            depositPerPerson: 0,
             name: row['restaurant_name'] as String,
             image: row['restaurant_image'] as String? ?? '',
             location: row['location'] as String? ?? '',

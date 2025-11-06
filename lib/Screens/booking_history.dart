@@ -10,7 +10,6 @@ class MyBookingHistoy extends StatefulWidget {
   const MyBookingHistoy({
     super.key,
     required int index,
-    required int selectedSeatIndex,
     required List<BookingItem> bookings,
     required ResturantData restaurant,
   });
@@ -37,7 +36,7 @@ class _MyBookingHistoyState extends State<MyBookingHistoy> {
 
     try {
       final response = await supabase
-          .from('booking_history')
+          .from('bookings')
           .select()
           .eq('user_id', user!.id)
           .order('id', ascending: false);

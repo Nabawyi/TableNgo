@@ -1,4 +1,4 @@
-// ignore_for_file: non_constant_identifier_names
+// customerBookingCard.dart
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -6,21 +6,25 @@ Widget BookingCardForCustomers(
   Map<String, dynamic> bookingData,
   int index,
   BuildContext context,
-  String status,
-  int bookingId,
+  VoidCallback onRefresh,
 ) {
-  // Extract values safely
-  final user_Name = bookingData['user_name'] ?? 'Unknown';
-  final user_Phone = bookingData['user_phone'] ?? 'Unknown';
-  final bookingDate = bookingData['booking_date'] != null
-      ? DateTime.parse(bookingData['booking_date'])
+  final String userName = bookingData['user_name'] ?? 'Unknown';
+  final String userPhone = bookingData['user_phone'] ?? 'Unknown';
+  final DateTime? bookedDate = bookingData['booked_date'] != null
+      ? DateTime.tryParse(bookingData['booked_date'].toString())
       : null;
-  final time = bookingData['time'] ?? '--:--';
-  final seats = bookingData['seats'] ?? '-';
+  final String time = (bookingData['booked_time'] ?? '--:--')
+      .toString()
+      .substring(0, 5);
+  final int seats = bookingData['number_of_seats'] ?? 0;
   final double deposit = (bookingData['deposit'] ?? 0.0).toDouble();
   final double refund = (bookingData['refund'] ?? 0.0).toDouble();
   final double totalPayable = deposit - refund;
-  final status = bookingData['status'] ?? 'pending';
+  final String currentStatus = (bookingData['status'] ?? 'pending')
+      .toString()
+      .toLowerCase();
+  final int bookingId = bookingData['id'] as int;
+  final String restaurantName = bookingData['restaurant_name'] ?? 'Restaurant';
 
   return Container(
     padding: const EdgeInsets.all(16.0),
@@ -43,63 +47,33 @@ Widget BookingCardForCustomers(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
-        // Restaurant name + status
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              user_Name,
+              userName,
               style: const TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
                 color: Colors.black87,
               ),
             ),
-            buildStatusChip(context, status, bookingId,(newStatus){
-              bookingData['status'] = newStatus;
-              (context as Element).markNeedsBuild();
-            }),
-            // Container(
-            //   margin: const EdgeInsets.only(left: 8.0),
-            //   padding: const EdgeInsets.symmetric(
-            //     horizontal: 8.0,
-            //     vertical: 4.0,
-            //   ),
-            //   decoration: BoxDecoration(
-            //     color: () {
-            //       switch (status) {
-            //         case 'completed':
-            //           return Colors.green.shade100;
-            //         case 'confirmed':
-            //           return Colors.blue.shade100;
-            //         case 'cancelled':
-            //           return Colors.red.shade100;
-            //         default:
-            //           return Colors.orange.shade100; // pending
-            //       }
-            //     }(),
-            //     borderRadius: BorderRadius.circular(8.0),
-            //   ),
-            //   child: Text(
-            //     status.toString().toUpperCase(),
-            //     style: TextStyle(
-            //       fontSize: 12,
-            //       fontWeight: FontWeight.bold,
-            //       color: () {
-            //         switch (status) {
-            //           case 'completed':
-            //             return Colors.green;
-            //           case 'confirmed':
-            //             return Colors.blue;
-            //           case 'cancelled':
-            //             return Colors.red;
-            //           default:
-            //             return Colors.orange; // pending
-            //         }
-            //       }(),
-            //     ),
-            //   ),
-            // ),
+            _StatusChip(
+              currentStatus: currentStatus,
+              bookingId: bookingId,
+              onStatusChanged: (newStatus) async {
+                await _updateStatus(bookingId, newStatus);
+                onRefresh();
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Status → ${newStatus.toUpperCase()}'),
+                    backgroundColor: Colors.black87,
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              },
+            ),
           ],
         ),
 
@@ -109,7 +83,7 @@ Widget BookingCardForCustomers(
             const Icon(Icons.phone_outlined, color: Colors.grey, size: 16),
             const SizedBox(width: 4),
             Text(
-              user_Phone,
+              userPhone,
               style: const TextStyle(fontSize: 12, color: Colors.grey),
             ),
           ],
@@ -119,15 +93,14 @@ Widget BookingCardForCustomers(
         Container(
           padding: const EdgeInsets.all(10.0),
           width: double.infinity,
+          height: 80,
           decoration: BoxDecoration(
             color: Colors.grey.shade100,
             borderRadius: BorderRadius.circular(12),
           ),
-          height: 80,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Booking ID
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -140,7 +113,7 @@ Widget BookingCardForCustomers(
                     ),
                   ),
                   Text(
-                    '#${bookingData['id']}',
+                    '#$bookingId',
                     style: const TextStyle(
                       fontSize: 12,
                       color: Colors.grey,
@@ -150,8 +123,6 @@ Widget BookingCardForCustomers(
                 ],
               ),
               const SizedBox(height: 8),
-
-              // Date + time + seats
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -164,9 +135,8 @@ Widget BookingCardForCustomers(
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        bookingDate != null
-                            ? '${bookingDate.day.toString().padLeft(2, '0')} '
-                                  '${_monthName(bookingDate.month)}, ${bookingDate.year}'
+                        bookedDate != null
+                            ? '${bookedDate.day.toString().padLeft(2, '0')} ${_monthName(bookedDate.month)}, ${bookedDate.year}'
                             : '—',
                         style: const TextStyle(
                           fontSize: 12,
@@ -201,7 +171,7 @@ Widget BookingCardForCustomers(
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        seats,
+                        '$seats',
                         style: const TextStyle(
                           fontSize: 12,
                           color: Colors.grey,
@@ -219,14 +189,14 @@ Widget BookingCardForCustomers(
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("Deposit: $deposit"),
+            Text('Deposit: EGP ${deposit.toStringAsFixed(2)}'),
             Text(
-              'Refund on arrival: EGP $refund',
+              'Refund on arrival: EGP ${refund.toStringAsFixed(2)}',
               style: const TextStyle(color: Colors.grey, fontSize: 12),
             ),
             const SizedBox(height: 4),
             Text(
-              "Total Payable: $totalPayable",
+              'Total Payable: EGP ${totalPayable.toStringAsFixed(2)}',
               style: const TextStyle(
                 fontWeight: FontWeight.bold,
                 color: Colors.deepOrange,
@@ -258,122 +228,133 @@ String _monthName(int month) {
   return months[month];
 }
 
-Widget buildStatusChip(BuildContext context, String status, int bookingId,
-  Function(String) onStatusChanged,
-) {
+Future<void> _updateStatus(int bookingId, String newStatus) async {
   final supabase = Supabase.instance.client;
+  await supabase
+      .from('bookings')
+      .update({'status': newStatus})
+      .eq('id', bookingId);
+}
 
-  Future<void> updateBookingStatus(String newStatus) async {
-    await supabase
-        .from('booking_history')
-        .update({'status': newStatus})
-        .eq('id', bookingId);
-    onStatusChanged(newStatus);
+class _StatusChip extends StatelessWidget {
+  final String currentStatus;
+  final int bookingId;
+  final void Function(String) onStatusChanged;
 
-    // ignore: use_build_context_synchronously
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Status updated to $newStatus'),
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: Colors.black87,
-        duration: const Duration(seconds: 2),
+  const _StatusChip({
+    required this.currentStatus,
+    required this.bookingId,
+    required this.onStatusChanged,
+  });
+
+  static const List<Map<String, dynamic>> _statusMap = [
+    {
+      'value': 'pending',
+      'label': 'Pending',
+      'color': Colors.orange,
+      'icon': Icons.hourglass_empty_rounded,
+    },
+    {
+      'value': 'confirmed',
+      'label': 'Confirmed',
+      'color': Colors.blue,
+      'icon': Icons.verified_rounded,
+    },
+    {
+      'value': 'completed',
+      'label': 'Completed',
+      'color': Colors.green,
+      'icon': Icons.check_circle_rounded,
+    },
+    {
+      'value': 'cancelled',
+      'label': 'Cancelled',
+      'color': Colors.red,
+      'icon': Icons.cancel_rounded,
+    },
+    {
+      'value': 'no_show',
+      'label': 'No Show',
+      'color': Colors.red,
+      'icon': Icons.person_off_rounded,
+    },
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final style = _statusMap.firstWhere(
+      (e) => e['value'] == currentStatus,
+      orElse: () => _statusMap[0],
+    );
+
+    return PopupMenuButton<String>(
+      tooltip: 'Change status',
+      offset: const Offset(0, 40),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      color: Colors.white,
+      elevation: 8,
+      onSelected: onStatusChanged,
+      itemBuilder: (_) => _statusMap.map((entry) {
+        final bool selected = entry['value'] == currentStatus;
+        final Color c = entry['color'] as Color;
+        return PopupMenuItem<String>(
+          value: entry['value'] as String,
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          child: Row(
+            children: [
+              Icon(entry['icon'] as IconData, color: c, size: 20),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  entry['label'] as String,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: selected ? FontWeight.bold : FontWeight.w500,
+                    color: selected ? c : Colors.black87,
+                  ),
+                ),
+              ),
+              if (selected) Icon(Icons.check, color: c, size: 18),
+            ],
+          ),
+        );
+      }).toList(),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: (style['color'] as Color).withOpacity(0.1),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: (style['color'] as Color).withOpacity(0.25),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              style['icon'] as IconData,
+              color: style['color'] as Color,
+              size: 16,
+            ),
+            const SizedBox(width: 6),
+            Text(
+              (style['label'] as String).toUpperCase(),
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 0.6,
+                color: style['color'] as Color,
+              ),
+            ),
+            const SizedBox(width: 4),
+            const Icon(
+              Icons.keyboard_arrow_down,
+              size: 18,
+              color: Colors.black54,
+            ),
+          ],
+        ),
       ),
     );
   }
-
-  // Status styles
-  final Map<String, Map<String, dynamic>> statusStyles = {
-    'pending': {
-      'color': Colors.orange,
-      'label': 'Pending',
-      'icon': Icons.hourglass_empty_rounded,
-    },
-    'confirmed': {
-      'color': Colors.blue,
-      'label': 'Confirmed',
-      'icon': Icons.verified_rounded,
-    },
-    'completed': {
-      'color': Colors.green,
-      'label': 'Completed',
-      'icon': Icons.check_circle_rounded,
-    },
-    'cancelled': {
-      'color': Colors.red,
-      'label': 'Cancelled',
-      'icon': Icons.cancel_rounded,
-    },
-  };
-
-  final style = statusStyles[status] ?? statusStyles['pending']!;
-  final Color baseColor = style['color'];
-  final String label = style['label'];
-  final IconData icon = style['icon'];
-
-  return PopupMenuButton<String>(
-    tooltip: 'Change status',
-    offset: const Offset(0, 40),
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-    color: Colors.white,
-    elevation: 8,
-    onSelected: (newStatus) async {
-      await updateBookingStatus(newStatus);
-    },
-    itemBuilder: (context) => statusStyles.entries.map((entry) {
-      final isSelected = entry.key == status;
-      final color = entry.value['color'] as Color;
-      return PopupMenuItem<String>(
-        value: entry.key,
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-        child: Row(
-          children: [
-            Icon(entry.value['icon'], color: color, size: 20),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                entry.value['label'],
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                  color: isSelected ? color : Colors.black87,
-                ),
-              ),
-            ),
-            if (isSelected) Icon(Icons.check, color: color, size: 18),
-          ],
-        ),
-      );
-    }).toList(),
-    child: Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: baseColor.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: baseColor.withOpacity(0.25)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, color: baseColor, size: 16),
-          const SizedBox(width: 6),
-          Text(
-            label.toUpperCase(),
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 0.6,
-              color: baseColor,
-            ),
-          ),
-          const SizedBox(width: 4),
-          const Icon(
-            Icons.keyboard_arrow_down,
-            size: 18,
-            color: Colors.black54,
-          ),
-        ],
-      ),
-    ),
-  );
 }
-

@@ -90,6 +90,7 @@ class BookingService {
         try {
           // Create a ResturantData object from the stored restaurant data
           final restaurant = ResturantData(
+            depositPerPerson:0,
             id: null, // No restaurant_id in new structure
             name: row['restaurant_name'] as String,
             image: row['restaurant_image'] as String? ?? '',
@@ -163,6 +164,7 @@ class BookingService {
       // Create a ResturantData object from the stored restaurant data
       final restaurant = ResturantData(
         id: null, // No restaurant_id in new structure
+        depositPerPerson: 0,
         name: response['restaurant_name'] as String,
         image: response['restaurant_image'] as String? ?? '',
         location: response['location'] as String? ?? '',

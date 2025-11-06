@@ -2,18 +2,24 @@ import 'package:flutter/material.dart';
 
 // ignore: non_constant_identifier_names
 Widget BookingCard(Map<String, dynamic> bookingData, int index) {
-  // Extract values safely
-  final restaurantName = bookingData['restaurant_name'] ?? 'Unknown';
-  final location = bookingData['location'] ?? 'Unknown';
-  final bookingDate = bookingData['booking_date'] != null
-      ? DateTime.parse(bookingData['booking_date'])
+  // Extract values safely from new schema
+  final int bookingId = bookingData['id'] ?? 0;
+  final String restaurantName = bookingData['restaurant_name'] ?? 'Unknown';
+  final String? bookedDateStr = bookingData['booked_date'];
+  final String? bookedTimeStr = bookingData['booked_time'];
+
+  final DateTime? bookedDate = bookedDateStr != null
+      ? DateTime.tryParse(bookedDateStr)
       : null;
-  final time = bookingData['time'] ?? '--:--';
-  final seats = bookingData['seats'] ?? '-';
+  final int numberOfSeats = bookingData['number_of_seats'] ?? 0;
   final double deposit = (bookingData['deposit'] ?? 0.0).toDouble();
   final double refund = (bookingData['refund'] ?? 0.0).toDouble();
   final double totalPayable = deposit - refund;
-  final status = bookingData['status'] ?? 'pending';
+
+  final String status = (bookingData['status'] ?? 'pending')
+      .toString()
+      .toLowerCase();
+
   return Container(
     padding: const EdgeInsets.all(16.0),
     width: double.infinity,
@@ -48,75 +54,34 @@ Widget BookingCard(Map<String, dynamic> bookingData, int index) {
               ),
             ),
             Container(
-              margin: const EdgeInsets.only(left: 8.0),
               padding: const EdgeInsets.symmetric(
                 horizontal: 8.0,
                 vertical: 4.0,
               ),
               decoration: BoxDecoration(
-                color: () {
-                  switch (status) {
-                    case 'completed':
-                      return Colors.green.shade100;
-                    case 'confirmed':
-                      return Colors.blue.shade100;
-                    case 'cancelled':
-                      return Colors.red.shade100;
-                    default:
-                      return Colors.orange.shade100; // pending
-                  }
-                }(),
+                color: _statusColor(status).withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8.0),
               ),
               child: Text(
-                status.toString().toUpperCase(),
+                status.toUpperCase(),
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
-                  color: () {
-                    switch (status) {
-                      case 'completed':
-                        return Colors.green;
-                      case 'confirmed':
-                        return Colors.blue;
-                      case 'cancelled':
-                        return Colors.red;
-                      default:
-                        return Colors.orange; // pending
-                    }
-                  }(),
+                  color: _statusColor(status),
                 ),
               ),
             ),
-
           ],
         ),
-
-        const SizedBox(height: 4),
-        Row(
-          children: [
-            const Icon(
-              Icons.location_on_outlined,
-              color: Colors.grey,
-              size: 16,
-            ),
-            const SizedBox(width: 4),
-            Text(
-              location,
-              style: const TextStyle(fontSize: 12, color: Colors.grey),
-            ),
-          ],
-        ),
-
         const SizedBox(height: 12),
         Container(
           padding: const EdgeInsets.all(10.0),
           width: double.infinity,
+          height: 80,
           decoration: BoxDecoration(
             color: Colors.grey.shade100,
             borderRadius: BorderRadius.circular(12),
           ),
-          height: 80,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -133,7 +98,7 @@ Widget BookingCard(Map<String, dynamic> bookingData, int index) {
                     ),
                   ),
                   Text(
-                    '#${bookingData['id']}',
+                    '#$bookingId',
                     style: const TextStyle(
                       fontSize: 12,
                       color: Colors.grey,
@@ -144,10 +109,11 @@ Widget BookingCard(Map<String, dynamic> bookingData, int index) {
               ),
               const SizedBox(height: 8),
 
-              // Date + time + seats
+              // Date + Time + Seats
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
+                  // Date
                   Row(
                     children: [
                       const Icon(
@@ -157,9 +123,8 @@ Widget BookingCard(Map<String, dynamic> bookingData, int index) {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        bookingDate != null
-                            ? '${bookingDate.day.toString().padLeft(2, '0')} '
-                                  '${_monthName(bookingDate.month)}, ${bookingDate.year}'
+                        bookedDate != null
+                            ? '${bookedDate.day.toString().padLeft(2, '0')} ${_monthName(bookedDate.month)}, ${bookedDate.year}'
                             : '—',
                         style: const TextStyle(
                           fontSize: 12,
@@ -168,6 +133,8 @@ Widget BookingCard(Map<String, dynamic> bookingData, int index) {
                       ),
                     ],
                   ),
+
+                  // Time
                   Row(
                     children: [
                       const Icon(
@@ -177,7 +144,7 @@ Widget BookingCard(Map<String, dynamic> bookingData, int index) {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        time,
+                        bookedTimeStr?.substring(0, 5) ?? '--:--', // Show HH:mm
                         style: const TextStyle(
                           fontSize: 12,
                           color: Colors.grey,
@@ -185,6 +152,8 @@ Widget BookingCard(Map<String, dynamic> bookingData, int index) {
                       ),
                     ],
                   ),
+
+                  // Seats
                   Row(
                     children: [
                       const Icon(
@@ -194,7 +163,7 @@ Widget BookingCard(Map<String, dynamic> bookingData, int index) {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        seats,
+                        numberOfSeats > 0 ? '$numberOfSeats' : '-',
                         style: const TextStyle(
                           fontSize: 12,
                           color: Colors.grey,
@@ -212,14 +181,14 @@ Widget BookingCard(Map<String, dynamic> bookingData, int index) {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("Deposit: $deposit"),
+            Text("Deposit: EGP ${deposit.toStringAsFixed(2)}"),
             Text(
-              'Refund on arrival: EGP $refund',
+              'Refund on arrival: EGP ${refund.toStringAsFixed(2)}',
               style: const TextStyle(color: Colors.grey, fontSize: 12),
             ),
             const SizedBox(height: 4),
             Text(
-              "Total Payable: $totalPayable",
+              "Total Payable: EGP ${totalPayable.toStringAsFixed(2)}",
               style: const TextStyle(
                 fontWeight: FontWeight.bold,
                 color: Colors.deepOrange,
@@ -232,6 +201,21 @@ Widget BookingCard(Map<String, dynamic> bookingData, int index) {
   );
 }
 
+// Helper: Status color
+Color _statusColor(String status) {
+  switch (status) {
+    case 'completed':
+      return Colors.green;
+    case 'confirmed':
+      return Colors.blue;
+    case 'cancelled':
+      return Colors.red;
+    default:
+      return Colors.orange;
+  }
+}
+
+// Helper: Month name
 String _monthName(int month) {
   const months = [
     '',

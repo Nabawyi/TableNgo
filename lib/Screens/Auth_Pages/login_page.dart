@@ -35,6 +35,7 @@ class _LoginPageState extends State<LoginPage> {
     });
 
     try {
+
       Logger.log('Starting login process', tag: 'LOGIN_PAGE');
 
       final response = await authservice.loginwithEmailandPassword(

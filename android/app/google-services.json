@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "39695627823",
+    "project_id": "tablengo",
+    "storage_bucket": "tablengo.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:39695627823:android:13d72e6e9d73ad080eb8da",
+        "android_client_info": {
+          "package_name": "com.example.tablengo"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBHunpZawfjFCecO8n5noxPnGBj8w6N3mg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

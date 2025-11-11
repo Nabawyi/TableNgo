@@ -1,226 +1,10 @@
-// owner_home.dart
+// restaurant_pricing_page.dart
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:tablengo/Screens/Welcome_screen.dart';
-import 'package:tablengo/Subapase/owner_supabase/owner_nptfication.dart';
-import 'package:tablengo/utils/customerBookingCard.dart';
-
-class OwnerHome extends StatefulWidget {
-  final int restaurantId;
-
-  const OwnerHome({super.key, required this.restaurantId});
-
-  @override
-  State<OwnerHome> createState() => _OwnerHomeState();
-}
-
-class _OwnerHomeState extends State<OwnerHome> {
-  int _currentIndex = 0;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: IndexedStack(
-        index: _currentIndex,
-        children: [
-          // Home Page - Booking List
-          _BookingListPage(restaurantId: widget.restaurantId),
-
-          // Pricing Settings Page
-          RestaurantPricingPage(restaurantId: widget.restaurantId),
-        ],
-      ),
-      bottomNavigationBar: RestaurantOwnerNavBar(
-        currentIndex: _currentIndex,
-        onTap: (index) => setState(() => _currentIndex = index),
-      ),
-    );
-  }
-}
-
-class _BookingListPage extends StatefulWidget {
-  final int restaurantId;
-
-  const _BookingListPage({required this.restaurantId});
-
-  @override
-  State<_BookingListPage> createState() => _BookingListPageState();
-}
-
-class _BookingListPageState extends State<_BookingListPage> {
-  final SupabaseClient supabase = Supabase.instance.client;
-  List<Map<String, dynamic>> customerBookingData = [];
-  bool isLoading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    fetchBookings();
-    _initializeOwnerNotifications();
-  }
-
-  Future<void> _initializeOwnerNotifications() async {
-    await notificationService.initializeForOwner(widget.restaurantId);
-  }
-
-  /// Fetch bookings with restaurant name joined
-  Future<void> fetchBookings() async {
-    setState(() => isLoading = true);
-    try {
-      final response = await supabase
-          .from('bookings')
-          .select('''
-      id, user_id, user_name, user_phone, booked_date, booked_time,
-      number_of_seats, deposit, refund, total_payable, status,
-      restaurant:restaurant_id (name)
-    ''')
-          .eq('restaurant_id', widget.restaurantId)
-          .order('id', ascending: false);
-
-      setState(() {
-        customerBookingData = List<Map<String, dynamic>>.from(response);
-        isLoading = false;
-      });
-    } catch (e) {
-      debugPrint('Error fetching bookings: $e');
-      setState(() => isLoading = false);
-    }
-  }
-
-  /// Update status
-  Future<void> updateBookingStatus(
-    int bookingId,
-    String newStatus,
-    String userId,
-    String restaurantName,
-  ) async {
-    try {
-      // Update booking status in Supabase
-      await supabase
-          .from('bookings')
-          .update({'status': newStatus})
-          .eq('id', bookingId);
-
-      await fetchBookings();
-
-      // Send push notification to the user
-// await supabase.functions.invoke(
-//         'send-notification',
-//         body: {
-//           'user_id': userId,
-//           'title': 'Booking Confirmed 🎉',
-//           'body': 'Your booking has been confirmed by ${widget.restaurantId}',
-//         },
-//       );
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Booking confirmed and notification sent!'),
-          backgroundColor: Colors.green,
-        ),
-      );
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Update failed: $e'),
-          backgroundColor: Colors.red.shade700,
-        ),
-      );
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey.shade50,
-      appBar: AppBar(
-        title: Image.asset('assets/images/Logo_orange.png', height: 50),
-        centerTitle: true,
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black87,
-        elevation: 0,
-        leading: Builder(
-          builder: (context) => IconButton(
-            icon: const Icon(
-              Icons.manage_accounts,
-              color: Colors.deepOrange,
-              size: 30,
-            ),
-            onPressed: () => Scaffold.of(context).openDrawer(),
-          ),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout, color: Colors.red),
-            onPressed: () =>
-                Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
-                  MaterialPageRoute(builder: (_) => const WelcomeScreen()),
-                  (route) => false,
-                ),
-          ),
-        ],
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1),
-          child: Container(color: Colors.grey.shade200, height: 1),
-        ),
-      ),
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : customerBookingData.isEmpty
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.inbox_outlined,
-                    size: 64,
-                    color: Colors.grey.shade400,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'No bookings yet',
-                    style: TextStyle(fontSize: 18, color: Colors.grey.shade600),
-                  ),
-                ],
-              ),
-            )
-          : RefreshIndicator(
-              onRefresh: fetchBookings,
-              child: ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: customerBookingData.length,
-                itemBuilder: (context, index) {
-                  final booking = customerBookingData[index];
-                  final restaurantName =
-                      (booking['restaurant'] as Map?)?['name'] ??
-                      'Unknown Restaurant';
-
-                  final displayBooking = Map<String, dynamic>.from(booking)
-                    ..['restaurant_name'] = restaurantName;
-
-                  return BookingCardForCustomers(
-                    displayBooking,
-                    index,
-                    context,
-                    fetchBookings,
-                  );
-                },
-              ),
-            ),
-    );
-  }
-}
-
-// ============================================
-// PRICING PAGE
-// ============================================
 
 class RestaurantPricingPage extends StatefulWidget {
   final int restaurantId;
-
   const RestaurantPricingPage({super.key, required this.restaurantId});
-
   @override
   State<RestaurantPricingPage> createState() => _RestaurantPricingPageState();
 }
@@ -265,8 +49,8 @@ class _RestaurantPricingPageState extends State<RestaurantPricingPage> {
           lastUpdated = response['last_pricing_update'] != null
               ? DateTime.parse(response['last_pricing_update'])
               : null;
-          _depositController.text = currentDeposit.toStringAsFixed(0);
-          _refundController.text = currentRefund.toStringAsFixed(0);
+          _depositController.text = currentDeposit.toStringAsFixed(2);
+          _refundController.text = currentRefund.toStringAsFixed(2);
         });
       }
     } catch (e) {
@@ -373,7 +157,6 @@ class _RestaurantPricingPageState extends State<RestaurantPricingPage> {
         backgroundColor: Colors.white,
         foregroundColor: Colors.black87,
         elevation: 0,
-        automaticallyImplyLeading: false,
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
           child: Container(color: Colors.grey.shade200, height: 1),
@@ -441,186 +224,195 @@ class _RestaurantPricingPageState extends State<RestaurantPricingPage> {
 
                   const SizedBox(height: 24),
 
-                  // Current Values
-                  _buildCurrentPricingCard(),
+                  // Current Values Card
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 10,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Current Pricing',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey.shade800,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            _InfoTile(
+                              icon: Icons.account_balance_wallet,
+                              label: 'Deposit per Person',
+                              value: 'EGP ${currentDeposit.toStringAsFixed(0)}',
+                              color: Colors.deepOrange,
+                            ),
+                            Container(
+                              width: 1,
+                              height: 60,
+                              color: Colors.grey.shade200,
+                            ),
+                            _InfoTile(
+                              icon: Icons.replay,
+                              label: 'Refund Amount',
+                              value: '${currentRefund.toStringAsFixed(0)}%',
+                              color: Colors.green,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
 
                   const SizedBox(height: 24),
 
                   // Update Form
-                  _buildUpdateForm(canUpdate),
-
-                  const SizedBox(height: 16),
-
-                  // Info Note
-                  _buildInfoNote(),
-                ],
-              ),
-            ),
-    );
-  }
-
-  Widget _buildCurrentPricingCard() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Current Pricing',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey.shade800,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _InfoTile(
-                icon: Icons.account_balance_wallet,
-                label: 'Deposit per Person',
-                value: 'EGP ${currentDeposit.toStringAsFixed(0)}',
-                color: Colors.deepOrange,
-              ),
-              Container(width: 1, height: 60, color: Colors.grey.shade200),
-              _InfoTile(
-                icon: Icons.replay,
-                label: 'Refund Amount',
-                value: '${currentRefund.toStringAsFixed(0)}%',
-                color: Colors.green,
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildUpdateForm(bool canUpdate) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Update Pricing',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey.shade800,
-            ),
-          ),
-          const SizedBox(height: 20),
-          _InputField(
-            controller: _depositController,
-            label: 'Deposit per Person',
-            hint: '0',
-            icon: Icons.account_balance_wallet,
-            prefix: 'EGP',
-            enabled: canUpdate && !isSaving,
-          ),
-          const SizedBox(height: 16),
-          _InputField(
-            controller: _refundController,
-            label: 'Refund Percentage',
-            hint: '0',
-            icon: Icons.replay,
-            suffix: '%',
-            enabled: canUpdate && !isSaving,
-          ),
-          const SizedBox(height: 24),
-          SizedBox(
-            width: double.infinity,
-            height: 50,
-            child: ElevatedButton(
-              onPressed: canUpdate && !isSaving ? _savePricing : null,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.deepOrange,
-                disabledBackgroundColor: Colors.grey.shade300,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                elevation: 0,
-              ),
-              child: isSaving
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(
-                        color: Colors.white,
-                        strokeWidth: 2,
-                      ),
-                    )
-                  : Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 10,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Icon(Icons.save),
-                        const SizedBox(width: 8),
                         Text(
-                          canUpdate
-                              ? 'Save Changes'
-                              : 'Update Locked Until Tomorrow',
-                          style: const TextStyle(
+                          'Update Pricing',
+                          style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
+                            color: Colors.grey.shade800,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+
+                        // Deposit Input
+                        _InputField(
+                          controller: _depositController,
+                          label: 'Deposit per Person',
+                          hint: '0',
+                          icon: Icons.account_balance_wallet,
+                          prefix: 'EGP',
+                          enabled: canUpdate && !isSaving,
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        // Refund Input
+                        _InputField(
+                          controller: _refundController,
+                          label: 'Refund Percentage',
+                          hint: '0',
+                          icon: Icons.replay,
+                          suffix: '%',
+                          enabled: canUpdate && !isSaving,
+                        ),
+
+                        const SizedBox(height: 24),
+
+                        // Save Button
+                        SizedBox(
+                          width: double.infinity,
+                          height: 50,
+                          child: ElevatedButton(
+                            onPressed: canUpdate && !isSaving
+                                ? _savePricing
+                                : null,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.deepOrange,
+                              disabledBackgroundColor: Colors.grey.shade300,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              elevation: 0,
+                            ),
+                            child: isSaving
+                                ? const SizedBox(
+                                    height: 20,
+                                    width: 20,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      const Icon(Icons.save),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        canUpdate
+                                            ? 'Save Changes'
+                                            : 'Update Locked Until Tomorrow',
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                           ),
                         ),
                       ],
                     ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+                  ),
 
-  Widget _buildInfoNote() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.blue.shade50,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.blue.shade200),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(Icons.info_outline, color: Colors.blue.shade700, size: 20),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              'You can update pricing once per day. New pricing will apply to all future bookings.',
-              style: TextStyle(fontSize: 13, color: Colors.blue.shade900),
+                  const SizedBox(height: 16),
+
+                  // Info Note
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.shade50,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.blue.shade200),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(
+                          Icons.info_outline,
+                          color: Colors.blue.shade700,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            'You can update pricing once per day. New pricing will apply to all future bookings.',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.blue.shade900,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
-      ),
     );
   }
 }
@@ -734,7 +526,7 @@ class _InputField extends StatelessWidget {
 }
 
 // ============================================
-// NAVIGATION BAR
+// NAVIGATION BAR WIDGET
 // ============================================
 
 class RestaurantOwnerNavBar extends StatelessWidget {
@@ -835,6 +627,49 @@ class _NavBarItem extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+// ============================================
+// EXAMPLE USAGE IN MAIN APP
+// ============================================
+
+class RestaurantOwnerMainPage extends StatefulWidget {
+  final int restaurantId;
+
+  const RestaurantOwnerMainPage({super.key, required this.restaurantId});
+
+  @override
+  State<RestaurantOwnerMainPage> createState() =>
+      _RestaurantOwnerMainPageState();
+}
+
+class _RestaurantOwnerMainPageState extends State<RestaurantOwnerMainPage> {
+  int _currentIndex = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: IndexedStack(
+        index: _currentIndex,
+        children: [
+          // Your existing home page with bookings
+          Center(
+            child: Text(
+              'Home Page\n(Your booking list goes here)',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
+            ),
+          ),
+          // Pricing settings page
+          RestaurantPricingPage(restaurantId: widget.restaurantId),
+        ],
+      ),
+      bottomNavigationBar: RestaurantOwnerNavBar(
+        currentIndex: _currentIndex,
+        onTap: (index) => setState(() => _currentIndex = index),
       ),
     );
   }
